@@ -1,0 +1,15 @@
+D:\Server\ShoeStore\ShoeStore.Application\bin\Debug\net8.0\ShoeStore.Application.deps.json
+D:\Server\ShoeStore\ShoeStore.Application\bin\Debug\net8.0\ShoeStore.Application.dll
+D:\Server\ShoeStore\ShoeStore.Application\bin\Debug\net8.0\ShoeStore.Application.pdb
+D:\Server\ShoeStore\ShoeStore.Application\bin\Debug\net8.0\ShoeStore.Domain.dll
+D:\Server\ShoeStore\ShoeStore.Application\bin\Debug\net8.0\ShoeStore.Domain.pdb
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.csproj.AssemblyReference.cache
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.AssemblyInfoInputs.cache
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.AssemblyInfo.cs
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.csproj.CoreCompileInputs.cache
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStor.A69DF785.Up2Date
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.dll
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\refint\ShoeStore.Application.dll
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.pdb
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ref\ShoeStore.Application.dll

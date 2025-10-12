@@ -1611,7 +1611,8 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.10",
-          "ShoeStore.Application": "1.0.0"
+          "ShoeStore.Application": "1.0.0",
+          "ShoeStore.Domain": "1.0.0"
         },
         "compile": {
           "bin/placeholder/ShoeStore.Infrastructure.dll": {}

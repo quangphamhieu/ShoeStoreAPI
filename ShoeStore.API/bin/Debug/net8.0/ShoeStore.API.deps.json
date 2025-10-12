@@ -960,7 +960,8 @@
       "ShoeStore.Infrastructure/1.0.0": {
         "dependencies": {
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.10",
-          "ShoeStore.Application": "1.0.0"
+          "ShoeStore.Application": "1.0.0",
+          "ShoeStore.Domain": "1.0.0"
         },
         "runtime": {
           "ShoeStore.Infrastructure.dll": {

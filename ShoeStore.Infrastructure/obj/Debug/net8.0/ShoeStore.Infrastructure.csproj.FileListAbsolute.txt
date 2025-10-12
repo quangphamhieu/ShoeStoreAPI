@@ -17,3 +17,4 @@ D:\Server\ShoeStore\ShoeStore.Infrastructure\obj\Debug\net8.0\refint\ShoeStore.I
 D:\Server\ShoeStore\ShoeStore.Infrastructure\obj\Debug\net8.0\ShoeStore.Infrastructure.pdb
 D:\Server\ShoeStore\ShoeStore.Infrastructure\obj\Debug\net8.0\ShoeStore.Infrastructure.genruntimeconfig.cache
 D:\Server\ShoeStore\ShoeStore.Infrastructure\obj\Debug\net8.0\ref\ShoeStore.Infrastructure.dll
+D:\Server\ShoeStore\ShoeStore.Infrastructure\obj\Debug\net8.0\ShoeStore.Infrastructure.sourcelink.json

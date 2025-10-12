@@ -259,6 +259,9 @@
             "projectReferences": {
               "D:\\Server\\ShoeStore\\ShoeStore.Application\\ShoeStore.Application.csproj": {
                 "projectPath": "D:\\Server\\ShoeStore\\ShoeStore.Application\\ShoeStore.Application.csproj"
+              },
+              "D:\\Server\\ShoeStore\\ShoeStore.Domain\\ShoeStore.Domain.csproj": {
+                "projectPath": "D:\\Server\\ShoeStore\\ShoeStore.Domain\\ShoeStore.Domain.csproj"
               }
             }
           }

@@ -13,3 +13,4 @@ D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application
 D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\refint\ShoeStore.Application.dll
 D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.pdb
 D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ref\ShoeStore.Application.dll
+D:\Server\ShoeStore\ShoeStore.Application\obj\Debug\net8.0\ShoeStore.Application.sourcelink.json

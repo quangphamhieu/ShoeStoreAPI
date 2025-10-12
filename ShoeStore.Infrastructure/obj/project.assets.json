@@ -4069,7 +4069,8 @@
     "net8.0": [
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.10",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.10",
-      "ShoeStore.Application >= 1.0.0"
+      "ShoeStore.Application >= 1.0.0",
+      "ShoeStore.Domain >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -4107,6 +4108,9 @@
           "projectReferences": {
             "D:\\Server\\ShoeStore\\ShoeStore.Application\\ShoeStore.Application.csproj": {
               "projectPath": "D:\\Server\\ShoeStore\\ShoeStore.Application\\ShoeStore.Application.csproj"
+            },
+            "D:\\Server\\ShoeStore\\ShoeStore.Domain\\ShoeStore.Domain.csproj": {
+              "projectPath": "D:\\Server\\ShoeStore\\ShoeStore.Domain\\ShoeStore.Domain.csproj"
             }
           }
         }

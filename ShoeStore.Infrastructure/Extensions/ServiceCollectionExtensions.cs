@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Infrastructure.Persistence;
+using ShoeStore.Infrastructure.Services;
 
 namespace ShoeStore.Infrastructure.Extensions
 {
@@ -12,6 +14,10 @@ namespace ShoeStore.Infrastructure.Extensions
         {
             var connectionString = configuration.GetConnectionString("ShoeStoreDb");
             services.AddDbContext<ShoeStoreDbContext>(options => options.UseSqlServer(connectionString));
+
+            services.AddScoped<IBrandService, BrandService>();
+            services.AddScoped<ISupplierService, SupplierService>();
+            services.AddScoped<IStoreService, StoreService>();
         }
     }
 }

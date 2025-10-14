@@ -161,7 +161,7 @@ namespace ShoeStore.Infrastructure.Persistence
             {
                 entity.ToTable("Products");
                 entity.HasKey(p => p.Id);
-                entity.Property(p => p.SKU).IsRequired().HasMaxLength(100);
+                entity.Property(p => p.SKU).HasMaxLength(500);
                 entity.Property(p => p.Name).IsRequired().HasMaxLength(500);
                 entity.Property(p => p.Color).HasMaxLength(100);
                 entity.Property(p => p.Size).HasMaxLength(100);

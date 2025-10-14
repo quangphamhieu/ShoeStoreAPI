@@ -18,6 +18,7 @@ namespace ShoeStore.Infrastructure.Extensions
             services.AddScoped<IBrandService, BrandService>();
             services.AddScoped<ISupplierService, SupplierService>();
             services.AddScoped<IStoreService, StoreService>();
+            services.AddScoped<IProductService, ProductService>();
         }
     }
 }

@@ -1,53 +1,88 @@
-﻿// ShoeStore.Api/Controllers/BrandController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShoeStore.Application.Dtos.Brand;
 using ShoeStore.Application.Interfaces.Services;
 
 namespace ShoeStore.Api.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class BrandController : ControllerBase
+    [ApiController]
+    public class BrandsController : ControllerBase
     {
-        private readonly IBrandService _service;
-        public BrandController(IBrandService service) => _service = service;
+        private readonly IBrandService _brandService;
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public BrandsController(IBrandService brandService)
         {
-            var items = await _service.GetAllAsync(cancellationToken);
-            return Ok(items);
+            _brandService = brandService;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+        [HttpGet]
+        public async Task<ActionResult<List<BrandDto>>> GetAll()
         {
-            var item = await _service.GetByIdAsync(id, cancellationToken);
-            if (item == null) return NotFound();
-            return Ok(item);
+            try
+            {
+                var brands = await _brandService.GetAllAsync();
+                return Ok(brands);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<BrandDto>> GetById(int id)
+        {
+            try
+            {
+                var brand = await _brandService.GetByIdAsync(id);
+                return brand == null ? NotFound() : Ok(brand);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateBrandDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<BrandDto>> Create(CreateBrandDto dto)
         {
-            var id = await _service.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            try
+            {
+                var created = await _brandService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateBrandDto dto, CancellationToken cancellationToken)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<BrandDto>> Update(int id, UpdateBrandDto dto)
         {
-            var ok = await _service.UpdateAsync(id, dto, cancellationToken);
-            if (!ok) return NotFound();
-            return NoContent();
+            try
+            {
+                var updated = await _brandService.UpdateAsync(id, dto);
+                return updated == null ? NotFound() : Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(int id)
         {
-            var ok = await _service.DeleteAsync(id, cancellationToken);
-            if (!ok) return NotFound();
-            return NoContent();
+            try
+            {
+                var deleted = await _brandService.DeleteAsync(id);
+                return deleted ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

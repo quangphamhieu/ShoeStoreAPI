@@ -1,14 +1,13 @@
-﻿// ShoeStore.Application/Interfaces/Services/IBrandService.cs
-using ShoeStore.Application.Dtos.Brand;
+﻿using ShoeStore.Application.Dtos.Brand;
 
-namespace ShoeStore.Application.Interfaces.Services;
-public interface IBrandService
+namespace ShoeStore.Application.Interfaces.Services
 {
-    Task<IEnumerable<BrandDto>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<BrandDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-    Task<int> CreateAsync(CreateBrandDto dto, CancellationToken cancellationToken = default); // returns new id
-    Task<bool> UpdateAsync(int id, UpdateBrandDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default); // soft-delete preferred (set inactive), returns success
+    public interface IBrandService
+    {
+        Task<List<BrandDto>> GetAllAsync();
+        Task<BrandDto?> GetByIdAsync(int id);
+        Task<BrandDto> CreateAsync(CreateBrandDto dto);
+        Task<BrandDto?> UpdateAsync(int id, UpdateBrandDto dto);
+        Task<bool> DeleteAsync(int id);
+    }
 }
-
-// Similar interfaces for ISupplierService and IStoreService

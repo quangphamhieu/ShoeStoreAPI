@@ -4,10 +4,10 @@ namespace ShoeStore.Application.Interfaces.Services
 {
     public interface ISupplierService
     {
-        Task<IEnumerable<SupplierDto>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<SupplierDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-        Task<int> CreateAsync(CreateSupplierDto dto, CancellationToken cancellationToken = default);
-        Task<bool> UpdateAsync(int id, UpdateSupplierDto dto, CancellationToken cancellationToken = default);
-        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
+        Task<List<SupplierDto>> GetAllAsync();
+        Task<SupplierDto?> GetByIdAsync(int id);
+        Task<SupplierDto> CreateAsync(CreateSupplierDto dto);
+        Task<SupplierDto?> UpdateAsync(int id, UpdateSupplierDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

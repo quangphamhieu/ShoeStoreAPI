@@ -1,5 +1,4 @@
-﻿// ShoeStore.Api/Controllers/SupplierController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShoeStore.Application.Dtos.Supplier;
 using ShoeStore.Application.Interfaces.Services;
 
@@ -9,45 +8,81 @@ namespace ShoeStore.Api.Controllers
     [Route("api/[controller]")]
     public class SupplierController : ControllerBase
     {
-        private readonly ISupplierService _service;
-        public SupplierController(ISupplierService service) => _service = service;
+        private readonly ISupplierService _supplierService;
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public SupplierController(ISupplierService supplierService)
         {
-            var items = await _service.GetAllAsync(cancellationToken);
-            return Ok(items);
+            _supplierService = supplierService;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+        [HttpGet]
+        public async Task<ActionResult<List<SupplierDto>>> GetAllSuppliers()
         {
-            var item = await _service.GetByIdAsync(id, cancellationToken);
-            if (item == null) return NotFound();
-            return Ok(item);
+            try
+            {
+                var suppliers = await _supplierService.GetAllAsync();
+                return Ok(suppliers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<SupplierDto>> GetSupplierById(int id)
+        {
+            try
+            {
+                var supplier = await _supplierService.GetByIdAsync(id);
+                return supplier == null ? NotFound() : Ok(supplier);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateSupplierDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<SupplierDto>> CreateSupplier(CreateSupplierDto dto)
         {
-            var id = await _service.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            try
+            {
+                var supplier = await _supplierService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetSupplierById), new { id = supplier.Id }, supplier);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateSupplierDto dto, CancellationToken cancellationToken)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<SupplierDto>> UpdateSupplier(int id, UpdateSupplierDto dto)
         {
-            var ok = await _service.UpdateAsync(id, dto, cancellationToken);
-            if (!ok) return NotFound();
-            return NoContent();
+            try
+            {
+                var supplier = await _supplierService.UpdateAsync(id, dto);
+                return supplier == null ? NotFound() : Ok(supplier);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSupplier(int id)
         {
-            var ok = await _service.DeleteAsync(id, cancellationToken);
-            if (!ok) return NotFound();
-            return NoContent();
+            try
+            {
+                var deleted = await _supplierService.DeleteAsync(id);
+                return deleted ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

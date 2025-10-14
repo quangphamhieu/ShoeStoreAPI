@@ -3,7 +3,7 @@
 public class Product
 {
     public int Id { get; set; }
-    public string SKU { get; set; } = null!;
+    public string? SKU { get; set; }
     public string Name { get; set; } = null!;
     public int? BrandId { get; set; }
     public int? SupplierId { get; set; }

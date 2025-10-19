@@ -9,3 +9,4 @@ D:\Server\ShoeStore\ShoeStore.Domain\obj\Debug\net8.0\ShoeStore.Domain.dll
 D:\Server\ShoeStore\ShoeStore.Domain\obj\Debug\net8.0\refint\ShoeStore.Domain.dll
 D:\Server\ShoeStore\ShoeStore.Domain\obj\Debug\net8.0\ShoeStore.Domain.pdb
 D:\Server\ShoeStore\ShoeStore.Domain\obj\Debug\net8.0\ref\ShoeStore.Domain.dll
+D:\Server\ShoeStore\ShoeStore.Domain\obj\Debug\net8.0\ShoeStore.Domain.sourcelink.json

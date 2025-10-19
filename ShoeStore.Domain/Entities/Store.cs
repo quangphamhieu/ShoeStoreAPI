@@ -13,6 +13,7 @@ public class Store
     public Status Status { get; set; } = null!;
 
     public ICollection<User>? Users { get; set; }
-    public ICollection<Product>? Products { get; set; }
+    public ICollection<StoreProduct>? StoreProducts { get; set; }
+    public ICollection<PromotionStore>? PromotionStores { get; set; }
     public ICollection<Order>? Orders { get; set; }
 }

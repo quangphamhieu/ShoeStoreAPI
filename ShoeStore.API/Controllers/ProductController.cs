@@ -4,70 +4,154 @@ using ShoeStore.Application.Interfaces.Services;
 
 namespace ShoeStore.Api.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class ProductController : ControllerBase
+    [ApiController]
+    public class ProductsController : ControllerBase
     {
-        private readonly IProductService _service;
+        private readonly IProductService _productService;
 
-        public ProductController(IProductService service)
+        public ProductsController(IProductService productService)
         {
-            _service = service;
+            _productService = productService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<ProductDto>>> GetAll()
         {
-            var products = await _service.GetAllAsync();
-            return Ok(products);
+            try
+            {
+                var products = await _productService.GetAllAsync();
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<ProductDto>> GetById(int id)
         {
-            var product = await _service.GetByIdAsync(id);
-            if (product == null) return NotFound();
-            return Ok(product);
+            try
+            {
+                var product = await _productService.GetByIdAsync(id);
+                return product == null ? NotFound() : Ok(product);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
+        public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
         {
-            var created = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            try
+            {
+                var created = await _productService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateProductDto dto)
+        public async Task<ActionResult<ProductDto>> Update(int id, UpdateProductDto dto)
         {
-            var result = await _service.UpdateAsync(id, dto);
-            if (!result) return NotFound();
-            return NoContent();
+            try
+            {
+                var updated = await _productService.UpdateAsync(id, dto);
+                return updated == null ? NotFound() : Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var result = await _service.DeleteAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            try
+            {
+                var deleted = await _productService.DeleteAsync(id);
+                return deleted ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost("search")]
-        public async Task<IActionResult> Search([FromBody] SearchProductDto searchDto)
+        public async Task<ActionResult> Search([FromBody] SearchProductDto searchDto)
         {
-            var result = await _service.SearchAsync(searchDto);
-            return Ok(result);
+            try
+            {
+                var result = await _productService.SearchAsync(searchDto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("suggest")]
-        public async Task<IActionResult> Suggest([FromQuery] string keyword)
+        public async Task<ActionResult> Suggest([FromQuery] string keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword))
-                return Ok(Enumerable.Empty<string>());
+            try
+            {
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return Ok(Enumerable.Empty<string>());
 
-            var suggestions = await _service.SuggestAsync(keyword);
-            return Ok(suggestions);
+                var suggestions = await _productService.SuggestAsync(keyword);
+                return Ok(suggestions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{productId}/store-quantity")]
+        public async Task<ActionResult> CreateStoreQuantity(int productId, [FromBody] StoreQuantityDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.StoreId <= 0)
+                    return BadRequest(new { message = "Invalid StoreQuantityDto" });
+
+                var created = await _productService.CreateStoreQuantityAsync(dto, productId);
+                return created == null
+                    ? Conflict(new { message = "Relation already exists." })
+                    : Ok(created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{productId}/store-quantity")]
+        public async Task<ActionResult> UpdateStoreQuantity(int productId, [FromBody] StoreQuantityDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.StoreId <= 0)
+                    return BadRequest(new { message = "Invalid StoreQuantityDto" });
+
+                var updated = await _productService.UpdateStoreQuantityAsync(dto, productId);
+                return updated == null
+                    ? NotFound(new { message = $"No relation found for ProductId {productId} and StoreId {dto.StoreId}." })
+                    : Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

@@ -356,6 +356,9 @@ namespace ShoeStore.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<decimal>("OriginalPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("SKU")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -370,9 +373,6 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("StoreId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("SupplierId")
                         .HasColumnType("int");
 
@@ -385,8 +385,6 @@ namespace ShoeStore.Infrastructure.Migrations
                         .HasFilter("[SKU] IS NOT NULL");
 
                     b.HasIndex("StatusId");
-
-                    b.HasIndex("StoreId");
 
                     b.HasIndex("SupplierId");
 
@@ -419,14 +417,9 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("StoreId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("StatusId");
-
-                    b.HasIndex("StoreId");
 
                     b.ToTable("Promotions", (string)null);
                 });
@@ -439,7 +432,7 @@ namespace ShoeStore.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal?>("DiscountPercent")
+                    b.Property<decimal>("DiscountPercent")
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("ProductId")
@@ -455,6 +448,21 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.HasIndex("PromotionId");
 
                     b.ToTable("PromotionProducts", (string)null);
+                });
+
+            modelBuilder.Entity("ShoeStore.Domain.Entities.PromotionStore", b =>
+                {
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PromotionId", "StoreId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("PromotionStores", (string)null);
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Receipt", b =>
@@ -619,6 +627,24 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("Stores", (string)null);
+                });
+
+            modelBuilder.Entity("ShoeStore.Domain.Entities.StoreProduct", b =>
+                {
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("StoreId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("StoreProducts", (string)null);
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Supplier", b =>
@@ -851,11 +877,6 @@ namespace ShoeStore.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ShoeStore.Domain.Entities.Store", "Store")
-                        .WithMany("Products")
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("ShoeStore.Domain.Entities.Supplier", "Supplier")
                         .WithMany("Products")
                         .HasForeignKey("SupplierId")
@@ -864,8 +885,6 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Navigation("Brand");
 
                     b.Navigation("Status");
-
-                    b.Navigation("Store");
 
                     b.Navigation("Supplier");
                 });
@@ -878,14 +897,7 @@ namespace ShoeStore.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ShoeStore.Domain.Entities.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Status");
-
-                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.PromotionProduct", b =>
@@ -905,6 +917,25 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Promotion");
+                });
+
+            modelBuilder.Entity("ShoeStore.Domain.Entities.PromotionStore", b =>
+                {
+                    b.HasOne("ShoeStore.Domain.Entities.Promotion", "Promotion")
+                        .WithMany("PromotionStores")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShoeStore.Domain.Entities.Store", "Store")
+                        .WithMany("PromotionStores")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Promotion");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Receipt", b =>
@@ -971,6 +1002,25 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Navigation("Status");
                 });
 
+            modelBuilder.Entity("ShoeStore.Domain.Entities.StoreProduct", b =>
+                {
+                    b.HasOne("ShoeStore.Domain.Entities.Product", "Product")
+                        .WithMany("StoreProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShoeStore.Domain.Entities.Store", "Store")
+                        .WithMany("StoreProducts")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Store");
+                });
+
             modelBuilder.Entity("ShoeStore.Domain.Entities.Supplier", b =>
                 {
                     b.HasOne("ShoeStore.Domain.Entities.Status", "Status")
@@ -1023,9 +1073,16 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.Navigation("OrderDetails");
                 });
 
+            modelBuilder.Entity("ShoeStore.Domain.Entities.Product", b =>
+                {
+                    b.Navigation("StoreProducts");
+                });
+
             modelBuilder.Entity("ShoeStore.Domain.Entities.Promotion", b =>
                 {
                     b.Navigation("PromotionProducts");
+
+                    b.Navigation("PromotionStores");
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Receipt", b =>
@@ -1061,7 +1118,9 @@ namespace ShoeStore.Infrastructure.Migrations
                 {
                     b.Navigation("Orders");
 
-                    b.Navigation("Products");
+                    b.Navigation("PromotionStores");
+
+                    b.Navigation("StoreProducts");
 
                     b.Navigation("Users");
                 });

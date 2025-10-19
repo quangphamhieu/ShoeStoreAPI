@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ShoeStore.Application.Interfaces.Services;
+using ShoeStore.Application.Services;
 using ShoeStore.Infrastructure.Persistence;
 using ShoeStore.Infrastructure.Services;
 
@@ -19,6 +20,7 @@ namespace ShoeStore.Infrastructure.Extensions
             services.AddScoped<ISupplierService, SupplierService>();
             services.AddScoped<IStoreService, StoreService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IPromotionService, PromotionService>();
         }
     }
 }

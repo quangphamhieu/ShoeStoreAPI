@@ -28,6 +28,8 @@ namespace ShoeStore.Infrastructure.Persistence
         public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<Brand> Brands { get; set; } = null!;
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+        public DbSet<StoreProduct> StoreProducts { get; set; } = null!;
+        public DbSet<PromotionStore> PromotionStores { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,15 +76,36 @@ namespace ShoeStore.Infrastructure.Persistence
                       .HasForeignKey(u => u.StoreId)
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasMany(s => s.Products)
-                      .WithOne(p => p.Store)
-                      .HasForeignKey(p => p.StoreId)
-                      .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasMany(s => s.Orders)
                       .WithOne(o => o.Store)
                       .HasForeignKey(o => o.StoreId)
                       .OnDelete(DeleteBehavior.SetNull);
+
+                // ✅ New many-to-many via StoreProduct
+                entity.HasMany(s => s.StoreProducts)
+                      .WithOne(sp => sp.Store)
+                      .HasForeignKey(sp => sp.StoreId);
+
+                entity.HasMany(s => s.PromotionStores)
+                      .WithOne(ps => ps.Store)
+                      .HasForeignKey(ps => ps.StoreId);
+            });
+
+
+            modelBuilder.Entity<StoreProduct>(entity =>
+            {
+                entity.ToTable("StoreProducts");
+                entity.HasKey(sp => new { sp.StoreId, sp.ProductId });
+
+                entity.Property(sp => sp.Quantity).IsRequired();
+
+                entity.HasOne(sp => sp.Store)
+                      .WithMany(s => s.StoreProducts)
+                      .HasForeignKey(sp => sp.StoreId);
+
+                entity.HasOne(sp => sp.Product)
+                      .WithMany(p => p.StoreProducts)
+                      .HasForeignKey(sp => sp.ProductId);
             });
 
             // ---------- Supplier ----------
@@ -172,10 +195,11 @@ namespace ShoeStore.Infrastructure.Persistence
                 // Prices
                 entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
                 entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.OriginalPrice).HasColumnType("decimal(18,2)");
 
                 entity.HasIndex(p => p.SKU).IsUnique(); // SKU unique
 
-                // relations
+                // Relations
                 entity.HasOne(p => p.Brand)
                       .WithMany(b => b.Products)
                       .HasForeignKey(p => p.BrandId)
@@ -186,16 +210,17 @@ namespace ShoeStore.Infrastructure.Persistence
                       .HasForeignKey(p => p.SupplierId)
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(p => p.Store)
-                      .WithMany(s => s.Products)
-                      .HasForeignKey(p => p.StoreId)
-                      .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasOne(p => p.Status)
                       .WithMany(st => st.Products)
                       .HasForeignKey(p => p.StatusId)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                // ✅ New many-to-many via StoreProduct
+                entity.HasMany(p => p.StoreProducts)
+                      .WithOne(sp => sp.Product)
+                      .HasForeignKey(sp => sp.ProductId);
             });
+
 
             // ---------- Receipt ----------
             modelBuilder.Entity<Receipt>(entity =>
@@ -261,11 +286,6 @@ namespace ShoeStore.Infrastructure.Persistence
                 entity.Property(p => p.StartDate).IsRequired();
                 entity.Property(p => p.EndDate).IsRequired();
 
-                entity.HasOne(p => p.Store)
-                      .WithMany()
-                      .HasForeignKey(p => p.StoreId)
-                      .OnDelete(DeleteBehavior.SetNull);
-
                 entity.HasOne(p => p.Status)
                       .WithMany(st => st.Promotions)
                       .HasForeignKey(p => p.StatusId)
@@ -275,6 +295,25 @@ namespace ShoeStore.Infrastructure.Persistence
                       .WithOne(pp => pp.Promotion)
                       .HasForeignKey(pp => pp.PromotionId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(p => p.PromotionStores)
+                      .WithOne(ps => ps.Promotion)
+                      .HasForeignKey(ps => ps.PromotionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PromotionStore>(entity =>
+            {
+                entity.ToTable("PromotionStores");
+                entity.HasKey(ps => new { ps.PromotionId, ps.StoreId });
+
+                entity.HasOne(ps => ps.Promotion)
+                      .WithMany(p => p.PromotionStores)
+                      .HasForeignKey(ps => ps.PromotionId);
+
+                entity.HasOne(ps => ps.Store)
+                      .WithMany(s => s.PromotionStores)
+                      .HasForeignKey(ps => ps.StoreId);
             });
 
             // ---------- PromotionProduct ----------

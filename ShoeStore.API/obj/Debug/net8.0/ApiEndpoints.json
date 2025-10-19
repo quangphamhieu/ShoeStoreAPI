@@ -1,18 +1,28 @@
 [
   {
-    "ContainingType": "ShoeStore.Api.Controllers.BrandController",
+    "ContainingType": "ShoeStore.Api.Controllers.BrandsController",
     "Method": "GetAll",
-    "RelativePath": "api/Brand",
+    "RelativePath": "api/Brands",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[ShoeStore.Application.Dtos.Brand.BrandDto, ShoeStore.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
-    "ContainingType": "ShoeStore.Api.Controllers.BrandController",
+    "ContainingType": "ShoeStore.Api.Controllers.BrandsController",
     "Method": "Create",
-    "RelativePath": "api/Brand",
+    "RelativePath": "api/Brands",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -23,12 +33,22 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Brand.BrandDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
-    "ContainingType": "ShoeStore.Api.Controllers.BrandController",
+    "ContainingType": "ShoeStore.Api.Controllers.BrandsController",
     "Method": "GetById",
-    "RelativePath": "api/Brand/{id}",
+    "RelativePath": "api/Brands/{id}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -39,12 +59,22 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Brand.BrandDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
-    "ContainingType": "ShoeStore.Api.Controllers.BrandController",
+    "ContainingType": "ShoeStore.Api.Controllers.BrandsController",
     "Method": "Update",
-    "RelativePath": "api/Brand/{id}",
+    "RelativePath": "api/Brands/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
@@ -60,12 +90,334 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Brand.BrandDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.BrandsController",
+    "Method": "Delete",
+    "RelativePath": "api/Brands/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "ShoeStore.Api.Controllers.BrandController",
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "GetAll",
+    "RelativePath": "api/Products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[ShoeStore.Application.Dtos.Product.ProductDto, ShoeStore.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "Create",
+    "RelativePath": "api/Products",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Product.CreateProductDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Product.ProductDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "GetById",
+    "RelativePath": "api/Products/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Product.ProductDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "Update",
+    "RelativePath": "api/Products/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Product.UpdateProductDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Product.ProductDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
     "Method": "Delete",
-    "RelativePath": "api/Brand/{id}",
+    "RelativePath": "api/Products/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "CreateStoreQuantity",
+    "RelativePath": "api/Products/{productId}/store-quantity",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Product.StoreQuantityDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "UpdateStoreQuantity",
+    "RelativePath": "api/Products/{productId}/store-quantity",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Product.StoreQuantityDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "Search",
+    "RelativePath": "api/Products/search",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "searchDto",
+        "Type": "ShoeStore.Application.Dtos.Product.SearchProductDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.ProductsController",
+    "Method": "Suggest",
+    "RelativePath": "api/Products/suggest",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "keyword",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.PromotionController",
+    "Method": "GetAll",
+    "RelativePath": "api/Promotion",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[ShoeStore.Application.Dtos.Promotion.PromotionDto, ShoeStore.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.PromotionController",
+    "Method": "Create",
+    "RelativePath": "api/Promotion",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Promotion.CreatePromotionDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Promotion.PromotionDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.PromotionController",
+    "Method": "GetById",
+    "RelativePath": "api/Promotion/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Promotion.PromotionDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.PromotionController",
+    "Method": "Update",
+    "RelativePath": "api/Promotion/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "ShoeStore.Application.Dtos.Promotion.UpdatePromotionDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Promotion.PromotionDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ShoeStore.Api.Controllers.PromotionController",
+    "Method": "Delete",
+    "RelativePath": "api/Promotion/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -80,17 +432,27 @@
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.StoreController",
-    "Method": "GetAll",
+    "Method": "GetAllStores",
     "RelativePath": "api/Store",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[ShoeStore.Application.Dtos.Store.StoreDto, ShoeStore.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.StoreController",
-    "Method": "Create",
+    "Method": "CreateStore",
     "RelativePath": "api/Store",
     "HttpMethod": "POST",
     "IsController": true,
@@ -102,11 +464,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Store.StoreDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.StoreController",
-    "Method": "GetById",
+    "Method": "GetStoreById",
     "RelativePath": "api/Store/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -118,11 +490,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Store.StoreDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.StoreController",
-    "Method": "Update",
+    "Method": "UpdateStore",
     "RelativePath": "api/Store/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -139,11 +521,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Store.StoreDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.StoreController",
-    "Method": "Delete",
+    "Method": "DeleteStore",
     "RelativePath": "api/Store/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -159,17 +551,27 @@
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.SupplierController",
-    "Method": "GetAll",
+    "Method": "GetAllSuppliers",
     "RelativePath": "api/Supplier",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[ShoeStore.Application.Dtos.Supplier.SupplierDto, ShoeStore.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.SupplierController",
-    "Method": "Create",
+    "Method": "CreateSupplier",
     "RelativePath": "api/Supplier",
     "HttpMethod": "POST",
     "IsController": true,
@@ -181,11 +583,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Supplier.SupplierDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.SupplierController",
-    "Method": "GetById",
+    "Method": "GetSupplierById",
     "RelativePath": "api/Supplier/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -197,11 +609,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Supplier.SupplierDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.SupplierController",
-    "Method": "Update",
+    "Method": "UpdateSupplier",
     "RelativePath": "api/Supplier/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -218,11 +640,21 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "ShoeStore.Application.Dtos.Supplier.SupplierDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "ShoeStore.Api.Controllers.SupplierController",
-    "Method": "Delete",
+    "Method": "DeleteSupplier",
     "RelativePath": "api/Supplier/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,

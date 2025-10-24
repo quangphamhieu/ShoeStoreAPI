@@ -9,6 +9,8 @@ public class Receipt
     public int? StoreId { get; set; }
     public int StatusId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? ReceivedDate { get; set; }
+    public decimal TotalAmount { get; set; }
 
     public Supplier Supplier { get; set; } = null!;
     public User Creator { get; set; } = null!;

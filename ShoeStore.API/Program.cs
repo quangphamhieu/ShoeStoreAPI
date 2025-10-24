@@ -1,4 +1,5 @@
 using ShoeStore.Infrastructure.Extensions;
+using ShoeStore.Infrastructure.Persistence.Interceptors;
 namespace ShoeStore.API
 {
     public class Program
@@ -15,6 +16,9 @@ namespace ShoeStore.API
             builder.Services.AddSwaggerGen();
             
             builder.Services.AddInfrastructure(builder.Configuration);
+
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<AuditInterceptor>();
 
             var app = builder.Build();
 

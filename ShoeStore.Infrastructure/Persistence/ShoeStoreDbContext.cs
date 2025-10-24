@@ -1,12 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShoeStore.Domain.Entities;
+using ShoeStore.Infrastructure.Persistence.Interceptors;
 
 namespace ShoeStore.Infrastructure.Persistence
 {
     public class ShoeStoreDbContext : DbContext
     {
-        public ShoeStoreDbContext(DbContextOptions<ShoeStoreDbContext> options) : base(options)
+        private readonly AuditInterceptor _auditInterceptor;
+        public ShoeStoreDbContext(DbContextOptions<ShoeStoreDbContext> options, AuditInterceptor auditInterceptor) : base(options)
         {
+            _auditInterceptor = auditInterceptor;
         }
 
         // DbSets
@@ -30,6 +33,11 @@ namespace ShoeStore.Infrastructure.Persistence
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
         public DbSet<StoreProduct> StoreProducts { get; set; } = null!;
         public DbSet<PromotionStore> PromotionStores { get; set; } = null!;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.AddInterceptors(_auditInterceptor);
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -229,20 +237,18 @@ namespace ShoeStore.Infrastructure.Persistence
                 entity.HasKey(r => r.Id);
                 entity.Property(r => r.ReceiptNumber).IsRequired().HasMaxLength(100);
                 entity.Property(r => r.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(r => r.TotalAmount).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+                entity.Property(r => r.ReceivedDate).HasColumnType("datetime2").IsRequired(false);
 
                 entity.HasIndex(r => r.ReceiptNumber).IsUnique();
 
-                // Supplier relation
-                // Note: Supplier class in your model does not include Receipts navigation property,
-                // so we configure .WithMany() with no navigation property.
                 entity.HasOne(r => r.Supplier)
-                      .WithMany() // no navigation on Supplier
+                      .WithMany() // nếu Supplier chưa có navigation
                       .HasForeignKey(r => r.SupplierId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Creator (User)
                 entity.HasOne(r => r.Creator)
-                      .WithMany() // if you want navigation back (e.g. User.ReceiptsCreated) add it to User class
+                      .WithMany() // nếu User chưa có navigation
                       .HasForeignKey(r => r.CreatedBy)
                       .OnDelete(DeleteBehavior.Restrict);
 
@@ -267,8 +273,10 @@ namespace ShoeStore.Infrastructure.Persistence
             {
                 entity.ToTable("ReceiptDetails");
                 entity.HasKey(rd => rd.Id);
-                entity.Property(rd => rd.Quantity).IsRequired();
-                entity.Property(rd => rd.UnitPrice).HasColumnType("decimal(18,2)");
+
+                entity.Property(rd => rd.QuantityOrdered).IsRequired();
+                entity.Property(rd => rd.ReceivedQuantity).IsRequired(false);
+                entity.Property(rd => rd.UnitPrice).HasColumnType("decimal(18,2)").IsRequired();
 
                 entity.HasOne(rd => rd.Product)
                       .WithMany()

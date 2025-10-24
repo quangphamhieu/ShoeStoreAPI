@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShoeStore.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using ShoeStore.Infrastructure.Persistence;
 namespace ShoeStore.Infrastructure.Migrations
 {
     [DbContext(typeof(ShoeStoreDbContext))]
-    partial class ShoeStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251020092154_ReceiptUpdate")]
+    partial class ReceiptUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -485,9 +488,6 @@ namespace ShoeStore.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ReceivedDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");

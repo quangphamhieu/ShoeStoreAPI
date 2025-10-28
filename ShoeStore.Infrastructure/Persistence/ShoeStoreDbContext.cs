@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using ShoeStore.Domain.Entities;
 using ShoeStore.Infrastructure.Persistence.Interceptors;
+using ShoeStore.Infrastructure.Security;
 
 namespace ShoeStore.Infrastructure.Persistence
 {
@@ -473,6 +475,28 @@ namespace ShoeStore.Infrastructure.Persistence
                       .WithMany()
                       .HasForeignKey(a => a.UserId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+            modelBuilder.Entity<Status>().HasData(
+                new Status { Id = 1, Code = "ACTIVE", Name = "Active", Description = "Active status" },
+                new Status { Id = 2, Code = "INACTIVE", Name = "Inactive", Description = "Inactive status" }
+            );
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Code = "ADMIN", Name = "Administrator" },
+                new Role { Id = 2, Code = "STAFF", Name = "Staff" },
+                new Role { Id = 3, Code = "CUSTOMER", Name = "Customer" }
+            );
+            var passwordHelper = new PasswordHelper();
+            var hasherPass = passwordHelper.HashPassword("1");
+            modelBuilder.Entity<User>().HasData(new User
+            {
+                Id = 1,
+                FullName = "Admin",
+                Phone = "0345602265",
+                Email = "admin@gmail.com",
+                PasswordHash = hasherPass,
+                RoleId = 1,
+                StatusId = 1,
+                CreatedAt = DateTime.Now,
             });
         }
     }

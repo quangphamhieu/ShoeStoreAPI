@@ -26,11 +26,12 @@ namespace ShoeStore.Infrastructure.Security
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-                new Claim(ClaimTypes.Name, fullName),
-                new Claim(ClaimTypes.Role, roleName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                    new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                    new Claim("userId", userId.ToString()), // Fixed: Added parentheses to call the ToString() method
+                    new Claim(ClaimTypes.Name, fullName),
+                    new Claim(ClaimTypes.Role, roleName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"]));

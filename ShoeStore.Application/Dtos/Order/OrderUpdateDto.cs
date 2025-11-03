@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace ShoeStore.Application.Dtos.Order
 {
-    internal class OrderDetailDto
+    public class OrderUpdateDto
     {
+        public int StatusId { get; set; }
+        public decimal? TotalAmount { get; set; }
     }
 }

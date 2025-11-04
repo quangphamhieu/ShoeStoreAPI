@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using ShoeStore.Application.Dtos.Order;
 using ShoeStore.Application.Interfaces.Services;
 
@@ -49,6 +50,13 @@ namespace ShoeStore.API.Controllers
         {
             var success = await _service.DeleteOrderAsync(id);
             return success ? Ok() : NotFound();
+        }
+        [HttpGet("myOrder")]
+        public async Task<IActionResult> GetOrderByUser()
+        {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
+            var result = await _service.GetOrderByUserAsync(userId);
+            return Ok(result);
         }
     }
 }

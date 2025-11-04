@@ -14,5 +14,6 @@ namespace ShoeStore.Application.Interfaces.Services
         Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync();
         Task<bool> UpdateOrderAsync(long id, OrderUpdateDto dto);
         Task<bool> DeleteOrderAsync(long id);
+        Task<IEnumerable<OrderResponseDto>> GetOrderByUserAsync(long userId);
     }
 }

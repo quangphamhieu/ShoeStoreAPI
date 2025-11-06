@@ -1,4 +1,6 @@
-﻿namespace ShoeStore.Application.Dtos.Product
+﻿using Microsoft.AspNetCore.Http;
+
+namespace ShoeStore.Application.Dtos.Product
 {
     public class UpdateProductDto
     {
@@ -12,6 +14,7 @@
         public string? Size { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public int StatusId { get; set; }
     }
 }

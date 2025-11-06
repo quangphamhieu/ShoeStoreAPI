@@ -44,6 +44,7 @@ namespace ShoeStore.Api.Controllers
         }
 
         [HttpPost]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<ProductDto>> Create(CreateProductDto dto)
         {
             try
@@ -58,6 +59,7 @@ namespace ShoeStore.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<ProductDto>> Update(int id, UpdateProductDto dto)
         {
             try

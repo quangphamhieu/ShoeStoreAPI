@@ -9,10 +9,12 @@ namespace ShoeStore.Infrastructure.Services
     public class ProductService : IProductService
     {
         private readonly ShoeStoreDbContext _context;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductService(ShoeStoreDbContext context)
+        public ProductService(ShoeStoreDbContext context, ICloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         // 🔹 Generate SKU: BRANDCODE-NAME-COLOR-SIZE
@@ -124,8 +126,8 @@ namespace ShoeStore.Infrastructure.Services
                 Color = dto.Color,
                 Size = dto.Size,
                 Description = dto.Description,
-                ImageUrl = dto.ImageUrl,
-                StatusId = dto.StatusId == 0 ? 1 : dto.StatusId,
+                ImageUrl = dto.ImageFile != null ? await _cloudinaryService.UploadImageAsync(dto.ImageFile) : dto.ImageUrl,
+                StatusId = 1,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -169,7 +171,14 @@ namespace ShoeStore.Infrastructure.Services
             product.Color = dto.Color;
             product.Size = dto.Size;
             product.Description = dto.Description;
-            product.ImageUrl = dto.ImageUrl;
+            if (dto.ImageFile != null)
+            {
+                product.ImageUrl = await _cloudinaryService.UploadImageAsync(dto.ImageFile);
+            }
+            else
+            {
+                product.ImageUrl = dto.ImageUrl;
+            };
             product.StatusId = dto.StatusId;
             product.SKU = await GenerateSkuAsync(product);
 

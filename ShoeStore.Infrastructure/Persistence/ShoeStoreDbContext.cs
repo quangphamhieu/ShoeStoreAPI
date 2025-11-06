@@ -478,12 +478,17 @@ namespace ShoeStore.Infrastructure.Persistence
             });
             modelBuilder.Entity<Status>().HasData(
                 new Status { Id = 1, Code = "ACTIVE", Name = "Active", Description = "Active status" },
-                new Status { Id = 2, Code = "INACTIVE", Name = "Inactive", Description = "Inactive status" }
+                new Status { Id = 2, Code = "INACTIVE", Name = "Inactive", Description = "Inactive status" },
+                new Status { Id = 3, Code = "PAYMENT_SUCCESS", Name = "Thanh toán thành công", Description = "Đơn hàng đã thanh toán thành công" },
+                new Status { Id = 4, Code = "PENDING_CONFIRMATION", Name = "Chờ xác nhận", Description = "Đơn hàng đang chờ xác nhận" },
+                new Status { Id = 5, Code = "CONFIRMED", Name = "Xác nhận", Description = "Đơn hàng đã được xác nhận" },
+                new Status { Id = 6, Code = "CANCELLED", Name = "Đã hủy", Description = "Đơn hàng đã bị hủy" }
             );
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Code = "ADMIN", Name = "Administrator" },
                 new Role { Id = 2, Code = "STAFF", Name = "Staff" },
-                new Role { Id = 3, Code = "CUSTOMER", Name = "Customer" }
+                new Role { Id = 3, Code = "CUSTOMER", Name = "Customer" },
+                new Role { Id = 4, Code = "SUPER ADMIN", Name = "Super Admin" }
             );
             var passwordHelper = new PasswordHelper();
             var hasherPass = passwordHelper.HashPassword("1");

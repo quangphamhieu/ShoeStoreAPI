@@ -156,7 +156,7 @@ namespace ShoeStore.Application.Services
                 Email = dto.Email,
                 Gender = dto.Gender,
                 PasswordHash = _passwordHelper.HashPassword(dto.Password),
-                RoleId = 2, // user thường
+                RoleId = 3, // user thường
                 StatusId = 1,
                 CreatedAt = DateTime.UtcNow
             };

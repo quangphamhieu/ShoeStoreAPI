@@ -569,6 +569,32 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (byte)1,
+                            Code = "ADMIN",
+                            Name = "Administrator"
+                        },
+                        new
+                        {
+                            Id = (byte)2,
+                            Code = "STAFF",
+                            Name = "Staff"
+                        },
+                        new
+                        {
+                            Id = (byte)3,
+                            Code = "CUSTOMER",
+                            Name = "Customer"
+                        },
+                        new
+                        {
+                            Id = (byte)4,
+                            Code = "SUPER ADMIN",
+                            Name = "Super Admin"
+                        });
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Status", b =>
@@ -598,6 +624,50 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.HasIndex("Code");
 
                     b.ToTable("Statuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "ACTIVE",
+                            Description = "Active status",
+                            Name = "Active"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "INACTIVE",
+                            Description = "Inactive status",
+                            Name = "Inactive"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "PAYMENT_SUCCESS",
+                            Description = "Đơn hàng đã thanh toán thành công",
+                            Name = "Thanh toán thành công"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "PENDING_CONFIRMATION",
+                            Description = "Đơn hàng đang chờ xác nhận",
+                            Name = "Chờ xác nhận"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "CONFIRMED",
+                            Description = "Đơn hàng đã được xác nhận",
+                            Name = "Xác nhận"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "CANCELLED",
+                            Description = "Đơn hàng đã bị hủy",
+                            Name = "Đã hủy"
+                        });
                 });
 
             modelBuilder.Entity("ShoeStore.Domain.Entities.Store", b =>
@@ -743,6 +813,20 @@ namespace ShoeStore.Infrastructure.Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CreatedAt = new DateTime(2025, 11, 6, 22, 20, 24, 423, DateTimeKind.Local).AddTicks(166),
+                            Email = "admin@gmail.com",
+                            FullName = "Admin",
+                            Gender = 0,
+                            PasswordHash = "AQAAAAIAAYagAAAAEKYkoJIaN2XkUMTISgm/rbhS1YyVvDEFLBZ09PgbcqAJK/DgAVtbwR4GsUOsJXYFrQ==",
+                            Phone = "0345602265",
+                            RoleId = (byte)1,
+                            StatusId = 1
+                        });
                 });
 
             modelBuilder.Entity("CartItem", b =>

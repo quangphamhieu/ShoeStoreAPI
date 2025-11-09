@@ -60,7 +60,7 @@ namespace ShoeStore.Infrastructure.Services
                 StoreId = dto.StoreId,
                 OrderType = dto.OrderType,
                 PaymentMethod = dto.PaymentMethod,
-                StatusId = 1,
+                StatusId = 4,
                 TotalAmount = totalAmount, // tự tính
                 CreatedBy = userId,
                 CreatedAt = DateTime.UtcNow,
@@ -128,15 +128,64 @@ namespace ShoeStore.Infrastructure.Services
 
         public async Task<bool> UpdateOrderAsync(long id, OrderUpdateDto dto)
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == id);
-            if (order == null) return false;
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            order.StatusId = dto.StatusId;
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (order == null)
+                return false;
+
+            var oldStatus = order.StatusId;
+            var newStatus = dto.StatusId;
+
+            order.StatusId = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
 
+            // 🔻 Nếu đơn chuyển sang "Xác nhận" (CONFIRMED = 5)
+            if (newStatus == 5 && oldStatus != 5)
+            {
+                var storeProducts = await _context.StoreProducts
+                    .Where(sp => sp.StoreId == order.StoreId)
+                    .ToDictionaryAsync(sp => sp.ProductId);
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (!storeProducts.ContainsKey(detail.ProductId))
+                        throw new Exception($"Sản phẩm ID {detail.ProductId} không có trong cửa hàng này");
+
+                    var sp = storeProducts[detail.ProductId];
+                    if (sp.Quantity < detail.Quantity)
+                        throw new Exception($"Sản phẩm '{detail.ProductId}' không đủ hàng (còn {sp.Quantity})");
+
+                    sp.Quantity -= detail.Quantity;
+                }
+            }
+
+            // 🔁 Nếu đơn chuyển sang "Đã hủy" (CANCELLED = 6)
+            else if (newStatus == 6 && oldStatus == 5)
+            {
+                // chỉ hoàn kho nếu đơn từng được xác nhận
+                var storeProducts = await _context.StoreProducts
+                    .Where(sp => sp.StoreId == order.StoreId)
+                    .ToDictionaryAsync(sp => sp.ProductId);
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (storeProducts.ContainsKey(detail.ProductId))
+                    {
+                        storeProducts[detail.ProductId].Quantity += detail.Quantity;
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             return true;
         }
+
 
         public async Task<bool> DeleteOrderAsync(long id)
         {

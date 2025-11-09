@@ -15,37 +15,42 @@ namespace ShoeStore.API.Controllers
             _cartService = cartService;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCart(long userId)
+        [HttpGet("getCart")]
+        public async Task<IActionResult> GetCart()
         {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             return Ok(cart);
         }
 
-        [HttpPost("{userId}/add")]
-        public async Task<IActionResult> AddToCart(long userId, [FromBody] AddToCartRequest request)
+        [HttpPost("add")]
+        public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest request)
         {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             var cart = await _cartService.AddToCartAsync(userId, request);
             return Ok(cart);
         }
 
-        [HttpPut("{userId}/update")]
-        public async Task<IActionResult> UpdateQuantity(long userId, [FromBody] UpdateCartItemRequest request)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateQuantity([FromBody] UpdateCartItemRequest request)
         {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             var cart = await _cartService.UpdateQuantityAsync(userId, request);
             return Ok(cart);
         }
 
-        [HttpDelete("{userId}/remove/{cartItemId}")]
-        public async Task<IActionResult> RemoveItem(long userId, long cartItemId)
+        [HttpDelete("remove/{cartItemId}")]
+        public async Task<IActionResult> RemoveItem(long cartItemId)
         {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             var cart = await _cartService.RemoveItemAsync(userId, cartItemId);
             return Ok(cart);
         }
 
-        [HttpDelete("{userId}/clear")]
-        public async Task<IActionResult> ClearCart(long userId)
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearCart()
         {
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             await _cartService.ClearCartAsync(userId);
             return NoContent();
         }

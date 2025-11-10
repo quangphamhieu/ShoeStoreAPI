@@ -23,14 +23,22 @@ namespace ShoeStore.Infrastructure.Services
         {
             var productIds = dto.OrderDetails.Select(x => x.ProductId).ToList();
 
-            // Lấy product từ DB
+            // Lấy danh sách sản phẩm từ DB
             var products = await _context.Products
                 .Where(p => productIds.Contains(p.Id))
                 .ToDictionaryAsync(p => p.Id);
 
-            // Kiểm tra sản phẩm tồn tại
+            // Kiểm tra sản phẩm hợp lệ
             if (products.Count != productIds.Count)
                 throw new Exception("Một hoặc nhiều sản phẩm không tồn tại");
+
+            // ✅ Mặc định cửa hàng ID = 1
+            int storeId = 1;
+
+            // Lấy danh sách sản phẩm trong cửa hàng
+            var storeProducts = await _context.StoreProducts
+                .Where(sp => sp.StoreId == storeId && productIds.Contains(sp.ProductId))
+                .ToDictionaryAsync(sp => sp.ProductId);
 
             var orderDetails = new List<OrderDetail>();
             decimal totalAmount = 0;
@@ -41,13 +49,24 @@ namespace ShoeStore.Infrastructure.Services
                     throw new Exception("Số lượng phải lớn hơn 0");
 
                 var product = products[item.ProductId];
-                var lineTotal = product.CostPrice * item.Quantity;
+                var lineTotal = product.SalePrice * item.Quantity; // dùng SalePrice nếu muốn tính theo giá bán
+
+                // ✅ Kiểm tra tồn kho
+                if (!storeProducts.ContainsKey(item.ProductId))
+                    throw new Exception($"Sản phẩm '{product.Name}' không có trong kho cửa hàng.");
+
+                var storeProduct = storeProducts[item.ProductId];
+                if (storeProduct.Quantity < item.Quantity)
+                    throw new Exception($"Sản phẩm '{product.Name}' chỉ còn {storeProduct.Quantity} trong kho.");
+
+                // 🔻 Trừ kho ngay khi tạo đơn
+                storeProduct.Quantity -= item.Quantity;
 
                 orderDetails.Add(new OrderDetail
                 {
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = product.CostPrice, // tự set giá từ DB
+                    UnitPrice = product.SalePrice,
                 });
 
                 totalAmount += lineTotal;
@@ -57,11 +76,11 @@ namespace ShoeStore.Infrastructure.Services
             {
                 OrderNumber = $"OD-{DateTime.UtcNow.Ticks}",
                 CustomerId = userId,
-                StoreId = dto.StoreId,
+                StoreId = storeId,
                 OrderType = dto.OrderType,
                 PaymentMethod = dto.PaymentMethod,
-                StatusId = 4,
-                TotalAmount = totalAmount, // tự tính
+                StatusId = 4, // Mặc định "Chờ xác nhận"
+                TotalAmount = totalAmount,
                 CreatedBy = userId,
                 CreatedAt = DateTime.UtcNow,
                 OrderDetails = orderDetails
@@ -72,6 +91,7 @@ namespace ShoeStore.Infrastructure.Services
 
             return await GetOrderByIdAsync(order.Id);
         }
+
 
         public async Task<OrderResponseDto?> GetOrderByIdAsync(long id)
         {
@@ -136,35 +156,18 @@ namespace ShoeStore.Infrastructure.Services
 
             if (order == null)
                 return false;
-
+            if(order.Id == 6 || order.Id == 3)
+            {
+                throw new Exception("đơn hàng đã bị hủy , không thể cập nhật trạng thái");
+            }
             var oldStatus = order.StatusId;
             var newStatus = dto.StatusId;
 
             order.StatusId = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
 
-            // 🔻 Nếu đơn chuyển sang "Xác nhận" (CONFIRMED = 5)
-            if (newStatus == 5 && oldStatus != 5)
-            {
-                var storeProducts = await _context.StoreProducts
-                    .Where(sp => sp.StoreId == order.StoreId)
-                    .ToDictionaryAsync(sp => sp.ProductId);
-
-                foreach (var detail in order.OrderDetails)
-                {
-                    if (!storeProducts.ContainsKey(detail.ProductId))
-                        throw new Exception($"Sản phẩm ID {detail.ProductId} không có trong cửa hàng này");
-
-                    var sp = storeProducts[detail.ProductId];
-                    if (sp.Quantity < detail.Quantity)
-                        throw new Exception($"Sản phẩm '{detail.ProductId}' không đủ hàng (còn {sp.Quantity})");
-
-                    sp.Quantity -= detail.Quantity;
-                }
-            }
-
             // 🔁 Nếu đơn chuyển sang "Đã hủy" (CANCELLED = 6)
-            else if (newStatus == 6 && oldStatus == 5)
+            if (newStatus == 6 && oldStatus != 6)
             {
                 // chỉ hoàn kho nếu đơn từng được xác nhận
                 var storeProducts = await _context.StoreProducts

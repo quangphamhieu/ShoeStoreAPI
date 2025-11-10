@@ -18,7 +18,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- GET ALL --------------------
         [HttpGet]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -38,7 +38,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- CREATE --------------------
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
             var result = await _userService.CreateAsync(dto);
@@ -59,7 +59,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- DELETE --------------------
         [HttpDelete("{id:long}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Super Admin")]
         public async Task<IActionResult> Delete(long id)
         {
             var result = await _userService.DeleteAsync(id);

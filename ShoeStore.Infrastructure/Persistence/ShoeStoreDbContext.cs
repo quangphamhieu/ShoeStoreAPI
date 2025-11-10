@@ -485,10 +485,11 @@ namespace ShoeStore.Infrastructure.Persistence
                 new Status { Id = 6, Code = "CANCELLED", Name = "Đã hủy", Description = "Đơn hàng đã bị hủy" }
             );
             modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Code = "ADMIN", Name = "Administrator" },
-                new Role { Id = 2, Code = "STAFF", Name = "Staff" },
-                new Role { Id = 3, Code = "CUSTOMER", Name = "Customer" },
-                new Role { Id = 4, Code = "SUPER ADMIN", Name = "Super Admin" }
+                new Role { Id = 1, Code = "SUPER ADMIN", Name = "Super Admin" },
+                new Role { Id = 2, Code = "ADMIN", Name = "Administrator" },
+                new Role { Id = 3, Code = "STAFF", Name = "Staff" },
+                new Role { Id = 4, Code = "CUSTOMER", Name = "Customer" }
+                
             );
             var passwordHelper = new PasswordHelper();
             var hasherPass = passwordHelper.HashPassword("1");

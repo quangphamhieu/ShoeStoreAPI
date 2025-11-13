@@ -107,6 +107,7 @@ namespace ShoeStore.Infrastructure.Persistence
                 entity.HasKey(sp => new { sp.StoreId, sp.ProductId });
 
                 entity.Property(sp => sp.Quantity).IsRequired();
+                entity.Property(sp => sp.SalePrice).HasColumnType("decimal(18,2)");
 
                 entity.HasOne(sp => sp.Store)
                       .WithMany(s => s.StoreProducts)
@@ -203,7 +204,6 @@ namespace ShoeStore.Infrastructure.Persistence
 
                 // Prices
                 entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
-                entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
                 entity.Property(p => p.OriginalPrice).HasColumnType("decimal(18,2)");
 
                 entity.HasIndex(p => p.SKU).IsUnique(); // SKU unique

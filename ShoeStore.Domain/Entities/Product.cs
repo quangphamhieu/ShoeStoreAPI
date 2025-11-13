@@ -8,7 +8,6 @@
         public int? BrandId { get; set; }
         public int? SupplierId { get; set; }
         public decimal CostPrice { get; set; }
-        public decimal SalePrice { get; set; }
         public decimal OriginalPrice { get; set; }
         public string? Color { get; set; }
         public string? Size { get; set; }

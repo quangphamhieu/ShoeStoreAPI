@@ -5,7 +5,7 @@ using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Domain.Entities;
 using ShoeStore.Infrastructure.Persistence;
 
-namespace ShoeStore.Application.Services
+namespace ShoeStore.Infrastructure.Services
 {
     public class PromotionService : IPromotionService
     {
@@ -43,7 +43,7 @@ namespace ShoeStore.Application.Services
                     ProductId = pp.ProductId,
                     ProductName = pp.Product.Name,
                     SKU = pp.Product.SKU,
-                    SalePrice = pp.Product.SalePrice,
+                    SalePrice = null, // SalePrice giờ ở StoreProduct, không ở Product
                     DiscountPercent = pp.DiscountPercent
                 }).ToList() ?? new List<PromotionProductDto>(),
                 Stores = p.PromotionStores?.Select(ps => new PromotionStoreDto
@@ -80,7 +80,7 @@ namespace ShoeStore.Application.Services
                     ProductId = pp.ProductId,
                     ProductName = pp.Product.Name,
                     SKU = pp.Product.SKU,
-                    SalePrice = pp.Product.SalePrice,
+                    SalePrice = null, // SalePrice giờ ở StoreProduct, không ở Product
                     DiscountPercent = pp.DiscountPercent
                 }).ToList(),
                 Stores = p.PromotionStores?.Select(ps => new PromotionStoreDto
@@ -91,31 +91,69 @@ namespace ShoeStore.Application.Services
             };
         }
         // ⚙️ Áp dụng giảm giá
-        private async Task ApplyDiscountToProductsAsync(Promotion promotion)
+        private async Task ApplyDiscountToProductsAsync(Promotion promotion, IEnumerable<int>? overrideStoreIds = null, IEnumerable<PromotionProduct>? overrideProducts = null)
         {
-            foreach (var pp in promotion.PromotionProducts!)
+            var storeIds = overrideStoreIds?.ToList()
+                ?? promotion.PromotionStores?.Select(ps => ps.StoreId).ToList()
+                ?? new List<int>();
+
+            if (!storeIds.Any()) return;
+
+            var promotionProducts = overrideProducts?.ToList() ?? promotion.PromotionProducts?.ToList() ?? new List<PromotionProduct>();
+            if (!promotionProducts.Any()) return;
+
+            var now = DateTime.Now;
+            if (promotion.StartDate > now || promotion.EndDate < now) return;
+
+            foreach (var pp in promotionProducts)
             {
                 var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == pp.ProductId);
                 if (product == null) continue;
 
                 // Tính giảm giá dựa trên OriginalPrice (luôn có giá trị)
                 var discountAmount = product.OriginalPrice * (pp.DiscountPercent / 100);
-                product.SalePrice = Math.Round(product.OriginalPrice - discountAmount, 2);
+                var newSalePrice = Math.Round(product.OriginalPrice - discountAmount, 2);
+
+                // Cập nhật SalePrice cho StoreProduct của các store trong promotion
+                var storeProducts = await _context.StoreProducts
+                    .Where(sp => sp.ProductId == pp.ProductId && storeIds.Contains(sp.StoreId))
+                    .ToListAsync();
+
+                foreach (var sp in storeProducts)
+                {
+                    sp.SalePrice = newSalePrice;
+                }
             }
 
             await _context.SaveChangesAsync();
         }
 
         // ⚙️ Khôi phục giá gốc
-        private async Task RestoreOriginalPricesAsync(Promotion promotion)
+        private async Task RestoreOriginalPricesAsync(Promotion promotion, IEnumerable<int>? overrideStoreIds = null, IEnumerable<PromotionProduct>? overrideProducts = null)
         {
-            foreach (var pp in promotion.PromotionProducts!)
+            var storeIds = overrideStoreIds?.ToList()
+                ?? promotion.PromotionStores?.Select(ps => ps.StoreId).ToList()
+                ?? new List<int>();
+
+            if (!storeIds.Any()) return;
+
+            var promotionProducts = overrideProducts?.ToList() ?? promotion.PromotionProducts?.ToList() ?? new List<PromotionProduct>();
+            if (!promotionProducts.Any()) return;
+
+            foreach (var pp in promotionProducts)
             {
                 var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == pp.ProductId);
                 if (product == null) continue;
 
-                // Khôi phục lại giá gốc (SalePrice = OriginalPrice)
-                product.SalePrice = product.OriginalPrice;
+                // Khôi phục lại giá gốc (SalePrice = OriginalPrice) cho StoreProduct
+                var storeProducts = await _context.StoreProducts
+                    .Where(sp => sp.ProductId == pp.ProductId && storeIds.Contains(sp.StoreId))
+                    .ToListAsync();
+
+                foreach (var sp in storeProducts)
+                {
+                    sp.SalePrice = product.OriginalPrice;
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -131,10 +169,35 @@ namespace ShoeStore.Application.Services
                 var prod = pp.Product;
                 var name = prod?.Name ?? $"ProductId:{pp.ProductId}";
                 var sku = prod?.SKU;
-                return $"{(string.IsNullOrWhiteSpace(sku) ? name : $"{sku} - {name}")}: {pp.DiscountPercent}%";
+                return $"• {(string.IsNullOrWhiteSpace(sku) ? name : $"{sku} - {name}")}: Giảm {pp.DiscountPercent}%";
             });
 
-            return string.Join("; ", parts);
+            return string.Join("\n", parts);
+        }
+
+        private async Task ValidateStorePromotionAvailabilityAsync(IEnumerable<int>? storeIds, int? excludePromotionId = null)
+        {
+            if (storeIds == null) return;
+            var list = storeIds.Distinct().ToList();
+            if (!list.Any()) return;
+
+            var now = DateTime.Now;
+
+            var conflicts = await _context.PromotionStores
+                .Include(ps => ps.Promotion)
+                .Where(ps => list.Contains(ps.StoreId))
+                .Where(ps => ps.PromotionId != excludePromotionId)
+                .Where(ps => ps.Promotion.StatusId == 1
+                             && ps.Promotion.StartDate <= now
+                             && ps.Promotion.EndDate >= now)
+                .Select(ps => new { ps.StoreId, PromotionName = ps.Promotion.Name })
+                .ToListAsync();
+
+            if (conflicts.Any())
+            {
+                var conflictStores = string.Join(", ", conflicts.Select(c => $"StoreId {c.StoreId} (Promotion: {c.PromotionName})"));
+                throw new InvalidOperationException($"Cửa hàng đang có khuyến mãi hoạt động: {conflictStores}. Vui lòng kết thúc khuyến mãi trước khi tạo mới.");
+            }
         }
 
 
@@ -181,7 +244,10 @@ namespace ShoeStore.Application.Services
                 timePart = days > 0 ? $"Còn {days} ngày nữa đến khi chương trình bắt đầu." : "Sắp bắt đầu.";
             }
 
-            var message = $"{promotion.Name} | {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}. {timePart} Sản phẩm: {productsSummary}";
+            var message = $"🎉 Chương trình khuyến mãi đặc biệt!\n\n" +
+                $"📅 Thời gian: {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}\n" +
+                $"⏰ {timePart}\n\n" +
+                $"🛍️ Sản phẩm áp dụng:\n{productsSummary}";
 
             await _notificationService.CreateAsync(new CreateNotificationDto
             {
@@ -195,7 +261,10 @@ namespace ShoeStore.Application.Services
 
             // Nếu đang active thì giảm giá
             if (promotion.StatusId == 1)
+            {
+                await ValidateStorePromotionAvailabilityAsync(promotion.PromotionStores?.Select(s => s.StoreId));
                 await ApplyDiscountToProductsAsync(promotion);
+            }
 
             return await GetByIdAsync(promotion.Id) ?? new PromotionDto();
         }
@@ -213,6 +282,17 @@ namespace ShoeStore.Application.Services
             var now = DateTime.Now;
 
             // cập nhật cơ bản
+            var previousStatusId = promotion.StatusId;
+            var previousStoreIds = promotion.PromotionStores?.Select(ps => ps.StoreId).Distinct().ToList() ?? new List<int>();
+            var existingProductsSnapshot = promotion.PromotionProducts?
+                .Select(pp => new PromotionProduct
+                {
+                    PromotionId = id,
+                    ProductId = pp.ProductId,
+                    DiscountPercent = pp.DiscountPercent
+                })
+                .ToList() ?? new List<PromotionProduct>();
+
             promotion.Name = dto.Name;
             promotion.StartDate = dto.StartDate;
             promotion.EndDate = dto.EndDate;
@@ -224,7 +304,8 @@ namespace ShoeStore.Application.Services
                 promotion.StatusId = 2; // inactive
 
             // cập nhật danh sách product
-            _context.PromotionProducts.RemoveRange(promotion.PromotionProducts!);
+            var existingProducts = promotion.PromotionProducts?.ToList() ?? new List<PromotionProduct>();
+            _context.PromotionProducts.RemoveRange(existingProducts);
             promotion.PromotionProducts = dto.Products?.Select(p => new PromotionProduct
             {
                 ProductId = p.ProductId,
@@ -233,6 +314,7 @@ namespace ShoeStore.Application.Services
             }).ToList();
 
             // cập nhật danh sách store
+            var previousStoreIdsForRemoval = promotion.PromotionStores?.Select(ps => ps.StoreId).ToList() ?? new List<int>();
             _context.PromotionStores.RemoveRange(promotion.PromotionStores!);
             promotion.PromotionStores = dto.Stores?.Select(s => new PromotionStore
             {
@@ -250,12 +332,24 @@ namespace ShoeStore.Application.Services
 
             // xử lý giá theo trạng thái & prepare notification
             var productsSummary = BuildProductsSummary(promotion);
+            var currentStoreIds = promotion.PromotionStores?.Select(ps => ps.StoreId).Distinct().ToList() ?? new List<int>();
+            var affectedStoreIds = previousStoreIds.Union(currentStoreIds).Distinct().ToList();
+            var removedStoreIds = previousStoreIdsForRemoval.Except(currentStoreIds).Distinct().ToList();
+
             if (promotion.StatusId == 1)
             {
+                await ValidateStorePromotionAvailabilityAsync(currentStoreIds, promotion.Id);
                 // active -> apply discount
-                await ApplyDiscountToProductsAsync(promotion);
+                await ApplyDiscountToProductsAsync(promotion, currentStoreIds);
 
-                var msg = $"{promotion.Name} đã bắt đầu. Thời gian: {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}. Sản phẩm: {productsSummary}";
+                if (removedStoreIds.Any())
+                {
+                    await RestoreOriginalPricesAsync(promotion, removedStoreIds, existingProductsSnapshot);
+                }
+
+                var msg = $"🎉 Chương trình khuyến mãi đã bắt đầu!\n\n" +
+                    $"📅 Thời gian: {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}\n\n" +
+                    $"🛍️ Sản phẩm áp dụng:\n{productsSummary}";
                 await _notificationService.CreateAsync(new CreateNotificationDto
                 {
                     Title = $"Khuyến mãi bắt đầu: {promotion.Name}",
@@ -266,13 +360,17 @@ namespace ShoeStore.Application.Services
             else
             {
                 // inactive
+                if (affectedStoreIds.Any())
+                {
+                    await RestoreOriginalPricesAsync(promotion, affectedStoreIds, existingProductsSnapshot.Any() ? existingProductsSnapshot : null);
+                }
+
                 if (now > promotion.EndDate)
                 {
                     // vừa kết thúc -> restore prices, notify end
-                    await RestoreOriginalPricesAsync(promotion);
-                    var msg = $"{promotion.Name} đã kết thúc vào {promotion.EndDate:dd/MM/yyyy}.";
+                    var msg = $"⏰ Chương trình khuyến mãi đã kết thúc vào {promotion.EndDate:dd/MM/yyyy}.";
                     if (!string.IsNullOrWhiteSpace(productsSummary))
-                        msg += $" Sản phẩm áp dụng trước đó: {productsSummary}";
+                        msg += $"\n\n🛍️ Sản phẩm đã áp dụng:\n{productsSummary}";
                     await _notificationService.CreateAsync(new CreateNotificationDto
                     {
                         Title = $"Khuyến mãi kết thúc: {promotion.Name}",
@@ -285,7 +383,10 @@ namespace ShoeStore.Application.Services
                     // start in future -> notify countdown
                     var days = (promotion.StartDate.Date - now.Date).Days;
                     var dayText = days > 0 ? $"Còn {days} ngày nữa đến khi chương trình bắt đầu." : "Sắp bắt đầu.";
-                    var msg = $"{promotion.Name} | {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}. {dayText} Sản phẩm: {productsSummary}";
+                    var msg = $"📢 Chương trình khuyến mãi sắp tới!\n\n" +
+                        $"📅 Thời gian: {promotion.StartDate:dd/MM/yyyy} - {promotion.EndDate:dd/MM/yyyy}\n" +
+                        $"⏰ {dayText}\n\n" +
+                        $"🛍️ Sản phẩm áp dụng:\n{productsSummary}";
                     await _notificationService.CreateAsync(new CreateNotificationDto
                     {
                         Title = $"Khuyến mãi cập nhật: {promotion.Name}",

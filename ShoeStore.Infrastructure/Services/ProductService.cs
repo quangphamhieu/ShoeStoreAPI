@@ -3,6 +3,7 @@ using ShoeStore.Application.Dtos.Product;
 using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Domain.Entities;
 using ShoeStore.Infrastructure.Persistence;
+using System.Collections.Generic;
 
 namespace ShoeStore.Infrastructure.Services
 {
@@ -56,7 +57,6 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = p.BrandId,
                 SupplierId = p.SupplierId,
                 CostPrice = p.CostPrice,
-                SalePrice = p.SalePrice,
                 OriginalPrice = p.OriginalPrice,
                 Color = p.Color,
                 Size = p.Size,
@@ -65,11 +65,12 @@ namespace ShoeStore.Infrastructure.Services
                 StatusId = p.StatusId,
                 CreatedAt = p.CreatedAt,
                 Stores = p.StoreProducts?.Select(sp => new StoreQuantityDto
-                            {
-                                StoreId = sp.StoreId,
-                                StoreName = sp.Store?.Name ?? string.Empty,
-                                Quantity = sp.Quantity
-                            })
+                {
+                    StoreId = sp.StoreId,
+                    StoreName = sp.Store?.Name ?? string.Empty,
+                    Quantity = sp.Quantity,
+                    SalePrice = sp.SalePrice
+                })
                             .ToList() ?? new List<StoreQuantityDto>()
 
             }).ToList();
@@ -94,7 +95,6 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = p.BrandId,
                 SupplierId = p.SupplierId,
                 CostPrice = p.CostPrice,
-                SalePrice = p.SalePrice,
                 OriginalPrice = p.OriginalPrice,
                 Color = p.Color,
                 Size = p.Size,
@@ -103,11 +103,12 @@ namespace ShoeStore.Infrastructure.Services
                 StatusId = p.StatusId,
                 CreatedAt = p.CreatedAt,
                 Stores = p.StoreProducts?.Select(sp => new StoreQuantityDto
-                    {
-                        StoreId = sp.StoreId,
-                        StoreName = sp.Store?.Name ?? string.Empty,
-                        Quantity = sp.Quantity
-                    })
+                {
+                    StoreId = sp.StoreId,
+                    StoreName = sp.Store?.Name ?? string.Empty,
+                    Quantity = sp.Quantity,
+                    SalePrice = sp.SalePrice
+                })
                     .ToList() ?? new List<StoreQuantityDto>()
             };
         }
@@ -121,7 +122,6 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = dto.BrandId,
                 SupplierId = dto.SupplierId,
                 CostPrice = dto.CostPrice,
-                SalePrice = dto.OriginalPrice,
                 OriginalPrice = dto.OriginalPrice,
                 Color = dto.Color,
                 Size = dto.Size,
@@ -145,7 +145,6 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = product.BrandId,
                 SupplierId = product.SupplierId,
                 CostPrice = product.CostPrice,
-                SalePrice = product.SalePrice,
                 OriginalPrice = product.OriginalPrice,
                 Color = product.Color,
                 Size = product.Size,
@@ -165,8 +164,10 @@ namespace ShoeStore.Infrastructure.Services
             product.Name = dto.Name;
             product.BrandId = dto.BrandId;
             product.SupplierId = dto.SupplierId;
+
+            var oldOriginalPrice = product.OriginalPrice;
+
             product.CostPrice = dto.CostPrice;
-            product.SalePrice = dto.OriginalPrice;
             product.OriginalPrice = dto.OriginalPrice;
             product.Color = dto.Color;
             product.Size = dto.Size;
@@ -178,9 +179,15 @@ namespace ShoeStore.Infrastructure.Services
             else
             {
                 product.ImageUrl = dto.ImageUrl;
-            };
+            }
+            ;
             product.StatusId = dto.StatusId;
             product.SKU = await GenerateSkuAsync(product);
+
+            if (oldOriginalPrice != product.OriginalPrice)
+            {
+                await UpdateStoreProductsSalePriceFromOriginalAsync(product.Id, oldOriginalPrice, product.OriginalPrice);
+            }
 
             await _context.SaveChangesAsync();
             return new ProductDto
@@ -191,7 +198,6 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = product.BrandId,
                 SupplierId = product.SupplierId,
                 CostPrice = product.CostPrice,
-                SalePrice = product.SalePrice,
                 OriginalPrice = product.OriginalPrice,
                 Color = product.Color,
                 Size = product.Size,
@@ -227,13 +233,23 @@ namespace ShoeStore.Infrastructure.Services
             if (!string.IsNullOrWhiteSpace(searchDto.Size))
                 query = query.Where(p => p.Size == searchDto.Size);
 
-            if (searchDto.MinPrice.HasValue)
-                query = query.Where(p => p.SalePrice >= searchDto.MinPrice.Value);
+            var products = await query
+                .Include(p => p.StoreProducts!)
+                    .ThenInclude(sp => sp.Store)
+                .AsNoTracking()
+                .ToListAsync();
 
-            if (searchDto.MaxPrice.HasValue)
-                query = query.Where(p => p.SalePrice <= searchDto.MaxPrice.Value);
-
-            var products = await query.AsNoTracking().ToListAsync();
+            // Filter by price if needed (check StoreProduct.SalePrice)
+            if (searchDto.MinPrice.HasValue || searchDto.MaxPrice.HasValue)
+            {
+                products = products.Where(p =>
+                    p.StoreProducts != null &&
+                    p.StoreProducts.Any(sp =>
+                        (!searchDto.MinPrice.HasValue || sp.SalePrice >= searchDto.MinPrice.Value) &&
+                        (!searchDto.MaxPrice.HasValue || sp.SalePrice <= searchDto.MaxPrice.Value)
+                    )
+                ).ToList();
+            }
 
             return products.Select(p => new ProductDto
             {
@@ -243,14 +259,20 @@ namespace ShoeStore.Infrastructure.Services
                 BrandId = p.BrandId,
                 SupplierId = p.SupplierId,
                 CostPrice = p.CostPrice,
-                SalePrice = p.SalePrice,
                 OriginalPrice = p.OriginalPrice,
                 Color = p.Color,
                 Size = p.Size,
                 Description = p.Description,
                 ImageUrl = p.ImageUrl,
                 StatusId = p.StatusId,
-                CreatedAt = p.CreatedAt
+                CreatedAt = p.CreatedAt,
+                Stores = p.StoreProducts?.Select(sp => new StoreQuantityDto
+                {
+                    StoreId = sp.StoreId,
+                    StoreName = sp.Store?.Name ?? string.Empty,
+                    Quantity = sp.Quantity,
+                    SalePrice = sp.SalePrice
+                }).ToList() ?? new List<StoreQuantityDto>()
             }).ToList();
         }
 
@@ -273,11 +295,18 @@ namespace ShoeStore.Infrastructure.Services
 
             if (exists) return null;
 
+            // Lấy product để lấy OriginalPrice
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null) return null;
+
+            var salePrice = dto.SalePrice ?? product.OriginalPrice;
+
             var entity = new StoreProduct
             {
                 ProductId = productId,
                 StoreId = dto.StoreId,
-                Quantity = dto.Quantity
+                Quantity = dto.Quantity,
+                SalePrice = salePrice
             };
 
             _context.StoreProducts.Add(entity);
@@ -289,7 +318,8 @@ namespace ShoeStore.Infrastructure.Services
             {
                 StoreId = entity.StoreId,
                 StoreName = store?.Name ?? string.Empty,
-                Quantity = entity.Quantity
+                Quantity = entity.Quantity,
+                SalePrice = entity.SalePrice
             };
         }
 
@@ -303,14 +333,69 @@ namespace ShoeStore.Infrastructure.Services
             if (ps == null) return null;
 
             ps.Quantity = dto.Quantity;
+
+            if (dto.SalePrice.HasValue)
+            {
+                ps.SalePrice = dto.SalePrice.Value;
+            }
+
             await _context.SaveChangesAsync();
 
             return new StoreQuantityDto
             {
                 StoreId = ps.StoreId,
                 StoreName = ps.Store?.Name ?? string.Empty,
-                Quantity = ps.Quantity
+                Quantity = ps.Quantity,
+                SalePrice = ps.SalePrice
             };
+        }
+
+        private async Task UpdateStoreProductsSalePriceFromOriginalAsync(int productId, decimal oldOriginalPrice, decimal newOriginalPrice)
+        {
+            if (oldOriginalPrice == newOriginalPrice)
+                return;
+
+            var storeProducts = await _context.StoreProducts
+                .Where(sp => sp.ProductId == productId)
+                .ToListAsync();
+
+            if (!storeProducts.Any())
+                return;
+
+            var activePromotionIds = await _context.PromotionProducts
+                .Where(pp => pp.ProductId == productId)
+                .Join(_context.Promotions,
+                    pp => pp.PromotionId,
+                    promotion => promotion.Id,
+                    (pp, promotion) => new { pp, promotion })
+                .Where(x => x.promotion.StatusId == 1
+                            && x.promotion.StartDate <= DateTime.UtcNow
+                            && x.promotion.EndDate >= DateTime.UtcNow)
+                .Select(x => x.pp.PromotionId)
+                .Distinct()
+                .ToListAsync();
+
+            var activeStoreIds = activePromotionIds.Any()
+                ? await _context.PromotionStores
+                    .Where(ps => activePromotionIds.Contains(ps.PromotionId))
+                    .Select(ps => ps.StoreId)
+                    .Distinct()
+                    .ToListAsync()
+                : new List<int>();
+
+            var activeStoreSet = activeStoreIds.Count > 0 ? new HashSet<int>(activeStoreIds) : null;
+
+            foreach (var sp in storeProducts)
+            {
+                if (activeStoreSet != null && activeStoreSet.Contains(sp.StoreId))
+                    continue;
+
+                // Chỉ cập nhật những store đang dùng giá gốc cũ (tránh ghi đè giá tùy chỉnh)
+                if (sp.SalePrice == oldOriginalPrice)
+                {
+                    sp.SalePrice = newOriginalPrice;
+                }
+            }
         }
     }
 }

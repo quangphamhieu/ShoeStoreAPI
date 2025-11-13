@@ -4,6 +4,7 @@ using ShoeStore.Infrastructure.Extensions;
 using ShoeStore.Infrastructure.Persistence.Interceptors;
 using ShoeStore.Infrastructure.Security;
 using System.Text;
+using System.Text.Json;
 namespace ShoeStore.API
 {
     public class Program
@@ -14,11 +15,16 @@ namespace ShoeStore.API
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            
+
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddCors(options =>
             {

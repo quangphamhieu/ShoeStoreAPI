@@ -49,7 +49,6 @@ namespace ShoeStore.Infrastructure.Services
                     throw new Exception("Số lượng phải lớn hơn 0");
 
                 var product = products[item.ProductId];
-                var lineTotal = product.SalePrice * item.Quantity; // dùng SalePrice nếu muốn tính theo giá bán
 
                 // ✅ Kiểm tra tồn kho
                 if (!storeProducts.ContainsKey(item.ProductId))
@@ -59,6 +58,10 @@ namespace ShoeStore.Infrastructure.Services
                 if (storeProduct.Quantity < item.Quantity)
                     throw new Exception($"Sản phẩm '{product.Name}' chỉ còn {storeProduct.Quantity} trong kho.");
 
+                // Lấy SalePrice từ StoreProduct thay vì Product
+                var salePrice = storeProduct.SalePrice;
+                var lineTotal = salePrice * item.Quantity;
+
                 // 🔻 Trừ kho ngay khi tạo đơn
                 storeProduct.Quantity -= item.Quantity;
 
@@ -66,7 +69,7 @@ namespace ShoeStore.Infrastructure.Services
                 {
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = product.SalePrice,
+                    UnitPrice = salePrice,
                 });
 
                 totalAmount += lineTotal;

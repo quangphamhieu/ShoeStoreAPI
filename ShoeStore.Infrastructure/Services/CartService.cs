@@ -68,11 +68,21 @@ namespace ShoeStore.Infrastructure.Services
                 var product = await _context.Products.FindAsync(request.ProductId)
                     ?? throw new Exception("Sản phẩm không tồn tại");
 
+                // ✅ Mặc định cửa hàng ID = 1 (có thể cần truyền từ request sau)
+                int storeId = 1;
+
+                // Lấy SalePrice từ StoreProduct
+                var storeProduct = await _context.StoreProducts
+                    .FirstOrDefaultAsync(sp => sp.ProductId == request.ProductId && sp.StoreId == storeId);
+
+                if (storeProduct == null)
+                    throw new Exception("Sản phẩm không có trong cửa hàng");
+
                 cart.CartItems.Add(new CartItem
                 {
                     ProductId = product.Id,
                     Quantity = request.Quantity,
-                    UnitPrice = product.SalePrice
+                    UnitPrice = storeProduct.SalePrice
                 });
             }
 

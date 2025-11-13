@@ -4,7 +4,7 @@ using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Domain.Entities;
 using ShoeStore.Infrastructure.Persistence;
 
-namespace ShoeStore.Application.Services
+namespace ShoeStore.Infrastructure.Services
 {
     public class ReceiptService : IReceiptService
     {
@@ -226,6 +226,15 @@ namespace ShoeStore.Application.Services
 
             // Update storeproduct: add received qty into corresponding StoreProduct
             var storeId = receipt.StoreId!.Value;
+            var productIds = (receipt.ReceiptDetails ?? Enumerable.Empty<ReceiptDetail>())
+                .Select(rd => rd.ProductId)
+                .Distinct()
+                .ToList();
+
+            var productMap = await _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
             foreach (var detail in receipt.ReceiptDetails ?? Enumerable.Empty<ReceiptDetail>())
             {
                 var recv = detail.ReceivedQuantity ?? 0;
@@ -236,17 +245,23 @@ namespace ShoeStore.Application.Services
 
                 if (sp == null)
                 {
+                    productMap.TryGetValue(detail.ProductId, out var product);
                     sp = new StoreProduct
                     {
                         ProductId = detail.ProductId,
                         StoreId = storeId,
-                        Quantity = recv
+                        Quantity = recv,
+                        SalePrice = product?.OriginalPrice ?? 0m
                     };
                     _context.StoreProducts.Add(sp);
                 }
                 else
                 {
                     sp.Quantity += recv;
+                    if (sp.SalePrice <= 0 && productMap.TryGetValue(detail.ProductId, out var productForUpdate))
+                    {
+                        sp.SalePrice = productForUpdate.OriginalPrice;
+                    }
                 }
             }
 

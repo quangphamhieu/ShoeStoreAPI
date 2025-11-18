@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using ShoeStore.Application.Interfaces;
 using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Application.Services;
+using ShoeStore.Infrastructure.Mail;
 using ShoeStore.Infrastructure.Persistence;
 using ShoeStore.Infrastructure.Persistence.Interceptors;
 using ShoeStore.Infrastructure.Services;
@@ -30,6 +31,8 @@ namespace ShoeStore.Infrastructure.Extensions
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddTransient<IEmailService, EmailService>();
+
         }
     }
 }

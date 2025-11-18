@@ -16,4 +16,8 @@ public class Store
     public ICollection<StoreProduct>? StoreProducts { get; set; }
     public ICollection<PromotionStore>? PromotionStores { get; set; }
     public ICollection<Order>? Orders { get; set; }
+    public ICollection<OrderDetail>? OrderDetails { get; set; }
+}
+set; }
+    public ICollection<Order>? Orders { get; set; }
 }

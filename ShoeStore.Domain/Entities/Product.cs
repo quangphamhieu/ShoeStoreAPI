@@ -22,5 +22,6 @@
         public Status Status { get; set; } = null!;
 
         public ICollection<StoreProduct>? StoreProducts { get; set; }
+        public ICollection<OrderDetail>? OrderDetails { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using ShoeStore.Infrastructure.Extensions;
+using ShoeStore.Infrastructure.Mail;
 using ShoeStore.Infrastructure.Persistence.Interceptors;
 using ShoeStore.Infrastructure.Security;
 using System.Text;
@@ -24,7 +25,7 @@ namespace ShoeStore.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddCors(options =>
             {

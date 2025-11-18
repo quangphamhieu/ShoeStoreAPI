@@ -1,19 +1,30 @@
-﻿namespace ShoeStore.Application.Dtos.Order
+﻿using System;
+using System.Collections.Generic;
+using ShoeStore.Domain.Entities;
+
+namespace ShoeStore.Application.Dtos.Order
 {
     public class OrderResponseDto
     {
         public long Id { get; set; }
         public string OrderNumber { get; set; } = null!;
-        public string CustomerName { get; set; } = null!;
+        public long CustomerId { get; set; }
+        public long? CreatedBy { get; set; }
+        public int? StoreId { get; set; }
+        public OrderType OrderType { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public int StatusId { get; set; }
         public decimal TotalAmount { get; set; }
-        public string StatusName { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
-        public List<OrderDetailResponseDto>? OrderDetails { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public List<OrderDetailResponseDto> Details { get; set; } = new();
     }
 
     public class OrderDetailResponseDto
     {
-        public string ProductName { get; set; } = null!;
+        public long Id { get; set; }
+        public int ProductId { get; set; }
+        public int StoreId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
     }

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShoeStore.Application.Dtos.Order;
 using ShoeStore.Application.Interfaces.Services;
+using System.Threading.Tasks;
 
 namespace ShoeStore.API.Controllers
 {
@@ -19,7 +19,7 @@ namespace ShoeStore.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] OrderCreateDto dto)
         {
-            var userId = long.Parse(User.FindFirst("userId")!.Value); // lấy từ claims trong thực tế
+            var userId = long.Parse(User.FindFirst("userId")!.Value);
             var result = await _service.CreateOrderAsync(dto, userId);
             return Ok(result);
         }
@@ -38,25 +38,34 @@ namespace ShoeStore.API.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(long id, [FromBody] OrderUpdateDto dto)
-        {
-            var success = await _service.UpdateOrderAsync(id, dto);
-            return success ? Ok() : NotFound();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(long id)
-        {
-            var success = await _service.DeleteOrderAsync(id);
-            return success ? Ok() : NotFound();
-        }
         [HttpGet("myOrder")]
         public async Task<IActionResult> GetOrderByUser()
         {
             var userId = long.Parse(User.FindFirst("userId")!.Value);
             var result = await _service.GetOrderByUserAsync(userId);
             return Ok(result);
+        }
+
+        [HttpPut("detail/{orderDetailId:long}")]
+        public async Task<IActionResult> UpdateDetail(long orderDetailId, [FromBody] OrderDetailUpdateDto dto)
+        {
+            dto.OrderDetailId = orderDetailId;
+            var success = await _service.UpdateOrderDetailAsync(dto);
+            return success ? Ok() : NotFound();
+        }
+
+        [HttpDelete("detail/{orderDetailId:long}")]
+        public async Task<IActionResult> DeleteDetail(long orderDetailId)
+        {
+            var success = await _service.DeleteOrderDetailAsync(orderDetailId);
+            return success ? Ok() : NotFound();
+        }
+
+        [HttpPut("status")]
+        public async Task<IActionResult> UpdateStatus([FromBody] OrderStatusUpdateDto dto)
+        {
+            var success = await _service.UpdateOrderStatusAsync(dto);
+            return success ? Ok() : NotFound();
         }
     }
 }

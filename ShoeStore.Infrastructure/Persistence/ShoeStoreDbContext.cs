@@ -383,14 +383,21 @@ namespace ShoeStore.Infrastructure.Persistence
             {
                 entity.ToTable("OrderDetails");
                 entity.HasKey(od => od.Id);
-                entity.Property(od => od.Quantity).IsRequired();
-                entity.Property(od => od.UnitPrice).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(od => od.Order)
+                      .WithMany(o => o.OrderDetails)
+                      .HasForeignKey(od => od.OrderId);
 
                 entity.HasOne(od => od.Product)
-                      .WithMany()
-                      .HasForeignKey(od => od.ProductId)
+                      .WithMany(p => p.OrderDetails)
+                      .HasForeignKey(od => od.ProductId);
+
+                entity.HasOne(od => od.Store)
+                      .WithMany(s => s.OrderDetails)
+                      .HasForeignKey(od => od.StoreId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
 
             // ---------- Cart ----------
             modelBuilder.Entity<Cart>(entity =>

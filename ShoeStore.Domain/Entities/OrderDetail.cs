@@ -1,14 +1,17 @@
-﻿namespace ShoeStore.Domain.Entities
-{
-    public class OrderDetail
-    {
-        public long Id { get; set; }
-        public long OrderId { get; set; }
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
+﻿using ShoeStore.Domain.Entities;
 
-        public Order Order { get; set; } = null!;
-        public Product Product { get; set; } = null!;
-    }
+public class OrderDetail
+{
+    public long Id { get; set; }
+    public long OrderId { get; set; }
+
+    public int ProductId { get; set; }
+    public int StoreId { get; set; }   // store chứa sản phẩm này
+
+    public int Quantity { get; set; }
+    public decimal UnitPrice { get; set; }  // lấy từ StoreProduct.SalePrice tại thời điểm tạo
+
+    public Order Order { get; set; } = null!;
+    public Product Product { get; set; } = null!;
+    public Store Store { get; set; } = null!;
 }

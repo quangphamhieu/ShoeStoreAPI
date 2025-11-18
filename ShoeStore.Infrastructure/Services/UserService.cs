@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShoeStore.Application.DTOs.Users;
 using ShoeStore.Application.Interfaces;
+using ShoeStore.Application.Interfaces.Services;
 using ShoeStore.Domain.Entities;
+using ShoeStore.Infrastructure.Mail;
 using ShoeStore.Infrastructure.Persistence;
 using ShoeStore.Infrastructure.Security;
 using System;
@@ -17,11 +19,13 @@ namespace ShoeStore.Application.Services
         private readonly ShoeStoreDbContext _context;
         private readonly JwtTokenGenerator _jwtTokenGenerator;
         private readonly PasswordHelper _passwordHelper;
-        public UserService(ShoeStoreDbContext context, JwtTokenGenerator jwtTokenGenerator, PasswordHelper passwordHelper)
+        private readonly IEmailService _emailService;
+        public UserService(ShoeStoreDbContext context, JwtTokenGenerator jwtTokenGenerator, PasswordHelper passwordHelper, IEmailService emailService)
         {
             _context = context;
             _jwtTokenGenerator = jwtTokenGenerator;
             _passwordHelper = passwordHelper;
+            _emailService = emailService;
         }
         public async Task<UserDto> CreateAsync(UserCreateDto dto)
         {
@@ -34,11 +38,22 @@ namespace ShoeStore.Application.Services
                 PasswordHash = _passwordHelper.HashPassword(dto.Password),
                 RoleId = dto.RoleId,
                 StatusId = 1,
+                StoreId = dto.StoreId,
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            var roleName = await _context.Roles
+                .Where(r => r.Id == user.RoleId)
+                .Select(r => r.Name)
+                .FirstOrDefaultAsync();
+
+            var statusName = await _context.Statuses
+                .Where(s => s.Id == user.StatusId)
+                .Select(s => s.Name)
+                .FirstOrDefaultAsync();
 
             return new UserDto
             {
@@ -46,7 +61,11 @@ namespace ShoeStore.Application.Services
                 FullName = user.FullName,
                 Phone = user.Phone,
                 Email = user.Email,
-                Gender = user.Gender
+                Gender = user.Gender,
+                RoleName = roleName ?? string.Empty,
+                StatusName = statusName ?? string.Empty,
+                StoreId = user.StoreId,
+                CreatedAt = user.CreatedAt
             };
         }
 
@@ -76,6 +95,7 @@ namespace ShoeStore.Application.Services
                     Gender = u.Gender,
                     RoleName = u.Role.Name,
                     StatusName = u.Status.Name,
+                    StoreId = u.StoreId,
                     CreatedAt = u.CreatedAt
                 })
                 .ToListAsync();
@@ -101,6 +121,7 @@ namespace ShoeStore.Application.Services
                 Gender = u.Gender,
                 RoleName = u.Role.Name,
                 StatusName = u.Status.Name,
+                StoreId = u.StoreId,
                 CreatedAt = u.CreatedAt
             };
         }
@@ -146,23 +167,39 @@ namespace ShoeStore.Application.Services
 
         public async Task<UserDto> SignupAsync(UserSignUpDto dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Phone == dto.Phone || u.Email == dto.Email))
-                throw new Exception("Số điện thoại đã tồn tại.");
+            // trim input ngay từ đầu
+            var phone = dto.Phone?.Trim();
+            var email = dto.Email?.Trim();
+
+            if (await _context.Users.AnyAsync(u => u.Phone == phone || u.Email == email))
+                throw new Exception("Số điện thoại hoặc email đã tồn tại.");
 
             var user = new User
             {
-                FullName = dto.FullName,
-                Phone = dto.Phone,
-                Email = dto.Email,
+                FullName = dto.FullName?.Trim(),
+                Phone = phone,
+                Email = email,
                 Gender = dto.Gender,
                 PasswordHash = _passwordHelper.HashPassword(dto.Password),
-                RoleId = 4, // user thường
+                RoleId = 4,
                 StatusId = 1,
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            // Gửi email nếu hợp lệ
+            if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                string subject = "Welcome to HieuShoeStore";
+                string html = $"<p>Xin chào {user.FullName},</p>" +
+                              $"<p>Tài khoản của bạn đã được tạo thành công!</p>" +
+                              $"<p>Email: {user.Email}</p>" +
+                              $"<p>Password: {dto.Password}</p>";
+                await _emailService.SendEmailAsync(user.Email, subject, html);
+            }
+
 
             return new UserDto
             {
@@ -172,10 +209,12 @@ namespace ShoeStore.Application.Services
                 Email = user.Email
             };
         }
-
         public async Task<UserDto?> UpdateAsync(UserUpdateDto dto)
         {
-            var user = await _context.Users.FindAsync(dto.Id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Status)
+                .FirstOrDefaultAsync(u => u.Id == dto.Id);
             if (user == null)
                 throw new Exception("Không tìm thấy người dùng.");
 
@@ -185,6 +224,7 @@ namespace ShoeStore.Application.Services
             user.Gender = dto.Gender;
             user.RoleId = dto.RoleId;
             user.StatusId = dto.StatusId;
+            user.StoreId = dto.StoreId;
 
             await _context.SaveChangesAsync();
 
@@ -194,7 +234,11 @@ namespace ShoeStore.Application.Services
                 FullName = user.FullName,
                 Phone = user.Phone,
                 Email = user.Email,
-                Gender = user.Gender
+                Gender = user.Gender,
+                RoleName = user.Role?.Name ?? string.Empty,
+                StatusName = user.Status?.Name ?? string.Empty,
+                StoreId = user.StoreId,
+                CreatedAt = user.CreatedAt
             };
         }
     }

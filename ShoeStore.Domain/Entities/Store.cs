@@ -18,6 +18,3 @@ public class Store
     public ICollection<Order>? Orders { get; set; }
     public ICollection<OrderDetail>? OrderDetails { get; set; }
 }
-set; }
-    public ICollection<Order>? Orders { get; set; }
-}

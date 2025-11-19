@@ -18,7 +18,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- GET ALL --------------------
         [HttpGet]
-        [Authorize(Roles = "Super Admin")]
+
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -27,7 +27,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- GET BY ID --------------------
         [HttpGet("{id:long}")]
-        [Authorize]
+
         public async Task<IActionResult> GetById(long id)
         {
             var user = await _userService.GetByIdAsync(id);
@@ -38,7 +38,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- CREATE --------------------
         [HttpPost]
-        [Authorize(Roles = "Super Admin")]
+
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
             var result = await _userService.CreateAsync(dto);
@@ -47,7 +47,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- UPDATE --------------------
         [HttpPut("{id:long}")]
-        [Authorize]
+
         public async Task<IActionResult> Update(long id, [FromBody] UserUpdateDto dto)
         {
             if (id != dto.Id)
@@ -59,7 +59,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- DELETE --------------------
         [HttpDelete("{id:long}")]
-        [Authorize(Roles = "Super Admin")]
+
         public async Task<IActionResult> Delete(long id)
         {
             var result = await _userService.DeleteAsync(id);
@@ -70,7 +70,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- SIGNUP --------------------
         [HttpPost("signup")]
-        [AllowAnonymous]
+
         public async Task<IActionResult> Signup([FromBody] UserSignUpDto dto)
         {
             var result = await _userService.SignupAsync(dto);
@@ -79,7 +79,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- LOGIN --------------------
         [HttpPost("login")]
-        [AllowAnonymous]
+
         public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
         {
             var result = await _userService.LoginAsync(dto);
@@ -90,7 +90,7 @@ namespace ShoeStore.WebApi.Controllers
 
         // -------------------- RESET PASSWORD --------------------
         [HttpPost("reset-password")]
-        [Authorize]
+
         public async Task<IActionResult> ResetPassword([FromBody] UserResetPassDto dto)
         {
             var result = await _userService.ResetPasswordAsync(dto);

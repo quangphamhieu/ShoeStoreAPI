@@ -13,6 +13,7 @@ namespace ShoeStore.Infrastructure.Services
     public class OrderService : IOrderService
     {
         private readonly ShoeStoreDbContext _context;
+        private const int WarehouseStoreId = 1;
 
         public OrderService(ShoeStoreDbContext context)
         {
@@ -35,8 +36,8 @@ namespace ShoeStore.Infrastructure.Services
             if (isOffline && !dto.StoreId.HasValue)
                 throw new Exception("Đơn offline phải chọn cửa hàng.");
 
-            if (isOnline && dto.StoreId.HasValue)
-                throw new Exception("Đơn online không có StoreId tổng.");
+            if (isOnline && dto.StoreId.HasValue && dto.StoreId.Value != WarehouseStoreId)
+                throw new Exception("Đơn online chỉ có thể thao tác trên kho hàng.");
 
             var customerExists = await _context.Users.AnyAsync(u => u.Id == dto.CustomerId);
             if (!customerExists)
@@ -66,9 +67,6 @@ namespace ShoeStore.Infrastructure.Services
                 {
                     if (item.Quantity <= 0) throw new Exception("Số lượng phải lớn hơn 0.");
 
-                    if (item.StoreId.HasValue && item.StoreId.Value != storeId)
-                        throw new Exception("Đơn offline: StoreId của sản phẩm phải trùng với store của đơn.");
-
                     if (!storeProducts.TryGetValue(item.ProductId, out var sp))
                         throw new Exception($"Sản phẩm '{products[item.ProductId].Name}' không có trong kho cửa hàng.");
 
@@ -81,7 +79,6 @@ namespace ShoeStore.Infrastructure.Services
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        StoreId = storeId,
                         UnitPrice = sp.SalePrice
                     };
 
@@ -110,28 +107,28 @@ namespace ShoeStore.Infrastructure.Services
             }
             else
             {
-                if (dto.Details.Any(i => !i.StoreId.HasValue))
-                    throw new Exception("Đơn online: mỗi sản phẩm phải chỉ rõ StoreId.");
-
-                var storeIds = dto.Details.Select(i => i.StoreId!.Value).Distinct().ToList();
+                int storeId = WarehouseStoreId;
 
                 var storeProducts = await _context.StoreProducts
-                    .Where(sp => storeIds.Contains(sp.StoreId) && productIds.Contains(sp.ProductId))
-                    .ToDictionaryAsync(sp => (sp.StoreId, sp.ProductId));
+                    .Where(sp => sp.StoreId == storeId && productIds.Contains(sp.ProductId))
+                    .ToDictionaryAsync(sp => sp.ProductId);
 
                 foreach (var item in dto.Details)
                 {
                     if (item.Quantity <= 0) throw new Exception("Số lượng phải lớn hơn 0.");
 
-                    var key = (item.StoreId!.Value, item.ProductId);
-                    if (!storeProducts.TryGetValue(key, out var sp))
-                        throw new Exception($"Sản phẩm '{products[item.ProductId].Name}' không có trong kho cửa hàng {item.StoreId.Value}.");
+                    if (!storeProducts.TryGetValue(item.ProductId, out var sp))
+                        throw new Exception($"Sản phẩm '{products[item.ProductId].Name}' không có trong kho kho hàng.");
+
+                    if (sp.Quantity < item.Quantity)
+                        throw new Exception($"Sản phẩm '{products[item.ProductId].Name}' chỉ còn {sp.Quantity} trong kho kho hàng.");
+
+                    sp.Quantity -= item.Quantity;
 
                     var od = new OrderDetail
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        StoreId = item.StoreId.Value,
                         UnitPrice = sp.SalePrice
                     };
 
@@ -144,7 +141,7 @@ namespace ShoeStore.Infrastructure.Services
                     OrderNumber = $"OD-{DateTime.UtcNow.Ticks}",
                     CustomerId = dto.CustomerId,
                     CreatedBy = userId,
-                    StoreId = null,
+                    StoreId = storeId,
                     OrderType = OrderType.Online,
                     PaymentMethod = dto.PaymentMethod,
                     StatusId = 4,
@@ -165,9 +162,9 @@ namespace ShoeStore.Infrastructure.Services
         {
             var o = await _context.Orders
                 .Include(x => x.Customer)
+                .Include(x => x.Creator)
                 .Include(x => x.Status)
                 .Include(x => x.OrderDetails)!.ThenInclude(d => d.Product)
-                .Include(x => x.OrderDetails)!.ThenInclude(d => d.Store)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (o == null) return null;
@@ -180,9 +177,9 @@ namespace ShoeStore.Infrastructure.Services
         {
             var orders = await _context.Orders
                 .Include(o => o.Customer)
+                .Include(o => o.Creator)
                 .Include(o => o.Status)
                 .Include(o => o.OrderDetails).ThenInclude(d => d.Product)
-                .Include(o => o.OrderDetails).ThenInclude(d => d.Store)
                 .OrderByDescending(o => o.Id)
                 .ToListAsync();
 
@@ -194,9 +191,9 @@ namespace ShoeStore.Infrastructure.Services
         {
             var orders = await _context.Orders
                 .Include(o => o.Customer)
+                .Include(o => o.Creator)
                 .Include(o => o.Status)
                 .Include(o => o.OrderDetails).ThenInclude(d => d.Product)
-                .Include(o => o.OrderDetails).ThenInclude(d => d.Store)
                 .Where(o => o.CustomerId == userId)
                 .OrderByDescending(o => o.Id)
                 .ToListAsync();
@@ -271,35 +268,16 @@ namespace ShoeStore.Infrastructure.Services
             int oldStatus = order.StatusId;
             int newStatus = dto.StatusId;
 
-            if (order.OrderType == OrderType.Online && oldStatus == 4 && newStatus == 3)
-            {
-                var storeProducts = await LoadStoreProductsAsync(order.OrderDetails);
-
-                foreach (var detail in order.OrderDetails)
-                {
-                    var key = (detail.StoreId, detail.ProductId);
-                    if (!storeProducts.ContainsKey(key))
-                        throw new Exception($"Sản phẩm '{detail.Product.Name}' không có trong kho cửa hàng {detail.StoreId}.");
-
-                    var sp = storeProducts[key];
-                    if (sp.Quantity < detail.Quantity)
-                        throw new Exception($"Sản phẩm '{detail.Product.Name}' chỉ còn {sp.Quantity} trong kho cửa hàng {detail.StoreId}.");
-
-                    sp.Quantity -= detail.Quantity;
-                }
-
-            }
-
             if (newStatus == 6 && (oldStatus == 3 || oldStatus == 5))
             {
-                var storeProducts = await LoadStoreProductsAsync(order.OrderDetails);
+                var storeId = order.StoreId ?? WarehouseStoreId;
+                var storeProducts = await LoadStoreProductsAsync(order.OrderDetails, storeId);
 
                 foreach (var detail in order.OrderDetails)
                 {
-                    var key = (detail.StoreId, detail.ProductId);
-                    if (storeProducts.ContainsKey(key))
+                    if (storeProducts.TryGetValue(detail.ProductId, out var sp))
                     {
-                        storeProducts[key].Quantity += detail.Quantity;
+                        sp.Quantity += detail.Quantity;
                     }
                 }
             }
@@ -325,18 +303,16 @@ namespace ShoeStore.Infrastructure.Services
             order.UpdatedAt = DateTime.UtcNow;
         }
 
-        private async Task<Dictionary<(int StoreId, int ProductId), StoreProduct>> LoadStoreProductsAsync(IEnumerable<OrderDetail> details)
+        private async Task<Dictionary<int, StoreProduct>> LoadStoreProductsAsync(IEnumerable<OrderDetail> details, int storeId)
         {
             var detailList = details?.ToList() ?? new List<OrderDetail>();
             if (!detailList.Any())
-                return new Dictionary<(int, int), StoreProduct>();
+                return new Dictionary<int, StoreProduct>();
 
             var productIds = detailList.Select(d => d.ProductId).Distinct().ToList();
-            var storeIds = detailList.Select(d => d.StoreId).Distinct().ToList();
-
             return await _context.StoreProducts
-                .Where(sp => productIds.Contains(sp.ProductId) && storeIds.Contains(sp.StoreId))
-                .ToDictionaryAsync(sp => (sp.StoreId, sp.ProductId));
+                .Where(sp => sp.StoreId == storeId && productIds.Contains(sp.ProductId))
+                .ToDictionaryAsync(sp => sp.ProductId);
         }
 
         // ================= MAPPING =================
@@ -347,7 +323,9 @@ namespace ShoeStore.Infrastructure.Services
                 Id = o.Id,
                 OrderNumber = o.OrderNumber,
                 CustomerId = o.CustomerId,
+                CustomerName = o.Customer?.FullName ?? string.Empty,
                 CreatedBy = o.CreatedBy,
+                CreatorName = o.Creator?.FullName,
                 StoreId = o.StoreId,
                 OrderType = o.OrderType,
                 PaymentMethod = o.PaymentMethod,
@@ -359,7 +337,6 @@ namespace ShoeStore.Infrastructure.Services
                 {
                     Id = d.Id,
                     ProductId = d.ProductId,
-                    StoreId = d.StoreId,
                     Quantity = d.Quantity,
                     UnitPrice = d.UnitPrice
                 }).ToList() ?? new List<OrderDetailResponseDto>()

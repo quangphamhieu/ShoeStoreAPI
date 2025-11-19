@@ -9,7 +9,9 @@ namespace ShoeStore.Application.Dtos.Order
         public long Id { get; set; }
         public string OrderNumber { get; set; } = null!;
         public long CustomerId { get; set; }
+        public string? CustomerName { get; set; }
         public long? CreatedBy { get; set; }
+        public string? CreatorName { get; set; }
         public int? StoreId { get; set; }
         public OrderType OrderType { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
@@ -24,7 +26,6 @@ namespace ShoeStore.Application.Dtos.Order
     {
         public long Id { get; set; }
         public int ProductId { get; set; }
-        public int StoreId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
     }

@@ -391,11 +391,6 @@ namespace ShoeStore.Infrastructure.Persistence
                 entity.HasOne(od => od.Product)
                       .WithMany(p => p.OrderDetails)
                       .HasForeignKey(od => od.ProductId);
-
-                entity.HasOne(od => od.Store)
-                      .WithMany(s => s.OrderDetails)
-                      .HasForeignKey(od => od.StoreId)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
 
 

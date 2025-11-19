@@ -10,7 +10,7 @@ namespace ShoeStore.Application.Dtos.Order
 
         /// <summary>
         /// Offline orders require StoreId (store of the staff creating the order).
-        /// Online orders must keep this null because each detail will specify its store.
+        /// Online orders ignore this value and will automatically use the warehouse store (Id = 1).
         /// </summary>
         public int? StoreId { get; set; }
 
